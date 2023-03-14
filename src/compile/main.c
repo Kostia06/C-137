@@ -16,12 +16,14 @@ char* compile_variable(HashTable* table,NodeBlock* block){
 }
 
 void compile(HashTable* table,Config* config,NodeBlock** blocks,size_t size){
-    FILE* file = fopen(config->output_file,"w");
+    FILE* c_file = fopen(config->output_file,"w");
+    FILE* h_file = fopen("include.h","w");
     for(int i=0;i<(int)size;i++){
         NodeBlock* block = blocks[i];
         PRINT_BLOCK(block,0);
     }
-    fclose(file);
+    fclose(c_file);
+    fclose(h_file);
     if(!strcmp(config->compiler_mode,"run")){
         remove(config->output_file);
         return;
