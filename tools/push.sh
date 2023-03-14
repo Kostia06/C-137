@@ -8,4 +8,5 @@ fi
 cd ../ && 
 git add . &&
 git commit -m "$1" &&
-git push origin main
+git brach -M main &&
+git push -u origin main
