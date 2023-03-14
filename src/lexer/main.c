@@ -303,7 +303,7 @@ void lex(Lexer* lexer){
         }
         if(is_digit(lexer->current_char)){lexer_integer(lexer);goto add_token;}
         if(is_string(lexer->current_char)){lexer_string(lexer);goto add_token;}
-        if(is_alpha(lexer->current_char)){lexer_keyword(lexer);goto add_token;}
+        if(is_alpha(lexer->current_char) || lexer->current_char=='_'){lexer_keyword(lexer);goto add_token;}
         if(lexer->current_char == '.'){lexer_function(lexer);goto add_token;}
         if(lexer->current_char == '#'){lexer_macro(lexer);goto add_token;}
         lexer_sign(lexer);

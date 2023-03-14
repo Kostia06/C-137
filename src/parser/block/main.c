@@ -64,6 +64,7 @@ static NodeBlock** level_block(NodeBlock** blocks, size_t size,int index,size_t*
                 for(int i=0;i<(int)hold_size;i++){
                     block->blocks = realloc(block->blocks,sizeof(NodeBlock*) * (block->block_size + 1));
                     block->blocks[block->block_size++] = hold[i];
+                    if(block->type == FN){hold[i]->scope = SINGLE_STRING((char*[]){block->scope,"!~!_fn",NULL});}
                 }
             }
             default:{
@@ -92,7 +93,7 @@ NodeBlock** create_blocks(Node** nodes,size_t size,char* scope,size_t* return_si
             if(hold_size == 0){continue;}
             ERROR(type == EMPTY,current_node->line,(char*[]){"Line did not receive a parser type",NULL},__func__,scope);
             NodeBlock* block = new_block(type,scope);
-            block->scope = type == FN ? SINGLE_STRING((char*[]){scope,"!~!_fn",NULL}) : scope;
+            block->scope = scope;
             block->spacing = next_spacing;
             block->node_size = hold_size;
             block->nodes = realloc(block->nodes,sizeof(Node*) * hold_size);
