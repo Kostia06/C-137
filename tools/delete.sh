@@ -5,7 +5,5 @@ if [ -z "$1" ]; then
     exit 1
 fi
 
-cd ../ && 
-git add . &&
-git commit -m "$1" &&
-git push origin main
+git reset --soft HEAD~$1
+git push origin main --force
