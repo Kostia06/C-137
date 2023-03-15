@@ -1,9 +1,6 @@
 #include "include.h"
 
 
-
-
-
 char* compile_variable(HashTable* table,NodeBlock* block){
     ERROR(block->node_size < 2,block->line,(char*[]){"Variable declaration must have a name and a value",NULL},__func__,block->scope);
     ERROR(block->nodes[0]->type != IDENTIFIER,block->line,(char*[]){"Variable declaration must have a name",NULL},__func__,block->scope);

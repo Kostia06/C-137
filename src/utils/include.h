@@ -130,7 +130,6 @@ typedef struct NodeStruct{
 void ERROR(int condition,int line,char **message,const char* fun,char* scope);
 char* SINGLE_STRING(char**array);
 char* STRINGIFY(int value);
-int INTEGERIFY(char* value);
 char* STRINGIFY_CHAR(char value);
 char* LOWER(char* string);
 char** SPLIT(char* string,char* split,int* return_size);

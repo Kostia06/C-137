@@ -64,11 +64,6 @@ char* STRINGIFY(int value){
     sprintf(str,"%d",value);
     return str;
 }
-int INTEGERIFY(char* value){
-    int i;
-    sscanf(value,"%d",&i);
-    return i;
-}
 char* STRINGIFY_CHAR(char value){
     char* str = malloc(sizeof(char));
     sprintf(str,"%c",value);

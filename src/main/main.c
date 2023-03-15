@@ -1,19 +1,16 @@
-#include <stdio.h>
-
 #include "../utils/include.h"
 #include "../hash/include.h"
 #include "../lexer/include.h"
-#include "../file/include.h"
-#include "../parser/block/include.h"
 #include "../parser/node/include.h"
 #include "../parser/macro/include.h"
+#include "../parser/block/include.h"
 #include "../compile/include.h"
 #include "../config/include.h"
 
 #define DEBUG_TOKEN     0
 #define DEBUG_NODE      0
 #define DEBUG_MACRO     0
-#define DEBUG_BLOCK     0
+#define DEBUG_BLOCK     1
 
 Config* new_config(int argc, char *argv[]){
     Config* config = malloc(sizeof(Config));
