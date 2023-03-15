@@ -26,12 +26,12 @@ In this example, there are 3 different ways to space out code
 ```C
     fn int main(){ 
         var age 17
-    // space
+        // space
         if(age == 17) 
             printf("Hello world 17 year old")
-    // single line
+        // single line
         elif(age == 18);printf("Hello world 18 year old") 
-    // brackets
+        // brackets
         elif(1){ 
             printf("Hello world")
         } 
