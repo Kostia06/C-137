@@ -10,7 +10,7 @@
 #define DEBUG_TOKEN     0
 #define DEBUG_NODE      0
 #define DEBUG_MACRO     0
-#define DEBUG_BLOCK     1
+#define DEBUG_BLOCK     0
 
 Config* new_config(int argc, char *argv[]){
     Config* config = malloc(sizeof(Config));

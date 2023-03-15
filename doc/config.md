@@ -1,4 +1,4 @@
-# Configuration files in 3F
+# Configuration files in C-137
 
 To use config file first you need to install lua on your operating system
 ### Mac
@@ -43,6 +43,6 @@ inside the file create tables
     
 Then in the same directory run 
 
-    ./3F
+    ./C-137
 
 It will automatically search for config.lua file in the directory

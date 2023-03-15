@@ -1,6 +1,6 @@
-# Syntax of 3F
+# Syntax of C-137
 
-With 3F, syntax is very flexible. For instance, if you're a Python coder, you may use the tab key to space out your code.
+With C-137, syntax is very flexible. For instance, if you're a Python coder, you may use the tab key to space out your code.
 
 ```C
     fn int main()
@@ -38,7 +38,7 @@ In this example, there are 3 different ways to space out code
     }
 ```
 
-If you don't like the keywords in the 3F you can change their names in 2 ways.
+If you don't like the keywords in the C-137 you can change their names in 2 ways.
 1. In the configuration you can change the keywords names [link to configuration documentation](config.md)
 
 2. Use the macro called `#replace` and follow with a new name and a keyword(s) you want to replace

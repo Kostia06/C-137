@@ -1,5 +1,5 @@
 <center>
-    <h1>3F Programming Language</h1>
+    <h1>C-137 Programming Language</h1>
 </center>
 <center>
 
@@ -9,9 +9,16 @@
 
 </center>
 <hr>
-<h2>Key Features of 3F</h2>
+<h2>Key Features of C-137</h2>
 <ul>
     <li><h3>Compiles Directly to C</h3></li>
     <li><h3>Highly Customizable syntax</h3></li>
 
+</ul>
+
+
+<h2>Things I want implement in the future</h2>
+<ul>
+    <l1>reading files from the internet</l1>
+    <l1>use C header files</l1>
 </ul>
