@@ -37,7 +37,7 @@ In this example, there are 3 different ways to space out code
         } 
     }
 ```
-<br>
+
 If you don't like the keywords in the 3F you can change their names in 2 ways.
 1. In the configuration you can change the keywords names [link to configuration documentation](config.md)
 
