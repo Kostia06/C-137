@@ -45,4 +45,4 @@ Then in the same directory run
 
     ./3F
 
-It will automatically search for config.lua file in the directpry
+It will automatically search for config.lua file in the directory
