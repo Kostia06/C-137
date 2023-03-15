@@ -40,6 +40,7 @@ In this example, there are 3 different ways to space out code
 
 If you don't like the keywords in the 3F you can change their names in 2 ways.
 1. In the configuration you can change the keywords names [link to configuration documentation](config.md)
+
 2. Use the macro called `#replace` and follow with a new name and a keyword(s) you want to replace
 
 The fastest way to do it both for compiler and as a user is to do the 1st step.
