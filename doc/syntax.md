@@ -26,18 +26,18 @@ In this example, there are 3 different ways to space out code
 ```C
     fn int main(){ 
         var age 17
-    // space
+        // space
         if(age == 17) 
             printf("Hello world 17 year old")
-    // single line
+        // single line
         elif(age == 18);printf("Hello world 18 year old") 
-    // brackets
+        // brackets
         elif(1){ 
             printf("Hello world")
         } 
     }
 ```
-<br>
+
 If you don't like the keywords in the 3F you can change their names in 2 ways.
 1. In the configuration you can change the keywords names [link to configuration documentation](config.md)
 2. Use the macro called `#replace` and follow with a new name and a keyword(s) you want to replace

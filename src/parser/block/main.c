@@ -1,10 +1,5 @@
 #include "include.h"
 
-typedef struct{
-    Node** nodes;
-    size_t node_size;
-}Replace;
-
 static NodeBlock* new_block(int type,char* scope){
     NodeBlock* block = malloc(sizeof(NodeBlock));
     block->type = type;
@@ -14,15 +9,6 @@ static NodeBlock* new_block(int type,char* scope){
     block->nodes = malloc(sizeof(Node*));
     block->scope = scope;
     return block;
-}
-static Node** add_token_to_array(Node** array,Node* value,int size,int index){
-    Node** new_array = malloc(sizeof(Node*)*(size+1));
-    for(int i = 0;i < size+1;i++){
-        if(i < index){new_array[i] = array[i];}
-        else if(i == index){new_array[i] = value;}
-        else{new_array[i] = array[i-1];}
-    }
-    return new_array;
 }
 static NodeBlock** level_block(NodeBlock** blocks, size_t size,int index,size_t* return_size){
     NodeBlock** new_blocks = malloc(sizeof(NodeBlock*));
@@ -80,7 +66,6 @@ static NodeBlock** level_block(NodeBlock** blocks, size_t size,int index,size_t*
 }
 
 NodeBlock** create_blocks(Node** nodes,size_t size,char* scope,size_t* return_size){
-    Replace* replacements[MAX_HASH_SIZE] = {NULL};
     NodeBlock** blocks = malloc(sizeof(NodeBlock*));
     size_t block_size = 0;
     Node** hold = malloc(sizeof(Node*));
@@ -122,42 +107,6 @@ NodeBlock** create_blocks(Node** nodes,size_t size,char* scope,size_t* return_si
             type = current_node->type;
             continue;
         }
-        if(current_node->type == MACRO_REPLACE){
-            ERROR(type != EMPTY,current_node->line,(char*[]){"Too many parser types",NULL},__func__,scope);
-            Node** replace = malloc(sizeof(Node*));
-            size_t replace_size = 0;
-            ERROR(index >= size || nodes[index]->type != IDENTIFIER,current_node->line,(char*[]){"Expected a custom token after const",NULL},__func__,scope);
-            char* name = nodes[index]->value;
-            index++;
-            int current_line = current_node->line;
-            while(index < size){
-                if(nodes[index]->type == NEW_LINE){index++;break;}
-                replace = realloc(replace,sizeof(Node*) * (replace_size + 1));
-                replace[replace_size++] = nodes[index++];
-            }
-            ERROR(replace_size == 0,current_node->line,(char*[]){"Expected a value after macro replace",NULL},__func__,scope);
-            Replace* new_replace = malloc(sizeof(Replace));
-            new_replace->nodes = replace;
-            new_replace->node_size = replace_size;
-            int id = hash_id(name);
-            ERROR(replacements[id] != NULL,current_node->line,(char*[]){"Constant already exists",NULL},__func__,scope);
-            replacements[id] = new_replace;
-            continue;
-        }
-        else if(current_node->type == IDENTIFIER){
-            char* name = current_node->value;
-            int id = hash_id(name);
-            if(replacements[id] != NULL){
-                Replace* replace_ = replacements[id];
-                for(int i = 0;i < (int)replace_->node_size;i++){
-                    replace_->nodes[i]->line = current_node->line;
-                    nodes = add_token_to_array(nodes,replace_->nodes[i],size,index+i);
-                    size++;
-                }
-                continue;
-            }
-        }
-
         hold = realloc(hold,sizeof(Node*) * (hold_size + 1));
         hold[hold_size++] = current_node;
     }

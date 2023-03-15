@@ -6,11 +6,13 @@
 #include "../file/include.h"
 #include "../parser/block/include.h"
 #include "../parser/node/include.h"
+#include "../parser/macro/include.h"
 #include "../compile/include.h"
 #include "../config/include.h"
 
 #define DEBUG_TOKEN     0
 #define DEBUG_NODE      0
+#define DEBUG_MACRO     0
 #define DEBUG_BLOCK     0
 
 Config* new_config(int argc, char *argv[]){
@@ -62,8 +64,14 @@ int main(int argc, char *argv[]){
         for(int i =0;i<(int)node_size;i++){PRINT_NODE(nodes[i],0);}
     #endif
 
+    size_t macro_size = 0;
+    Node** macro = create_macro(nodes,node_size,config->input_file,&macro_size);
+    #if DEBUG_MACRO == 1
+        for(int i =0;i<(int)macro_size;i++){PRINT_NODE(macro[i],0);}
+    #endif
+
     size_t block_size = 0 ;
-    NodeBlock** blocks = create_blocks(nodes,node_size,config->input_file,&block_size);
+    NodeBlock** blocks = create_blocks(macro,macro_size,config->input_file,&block_size);
     #if DEBUG_BLOCK == 1
         for(int i =0;i<(int)block_size;i++){PRINT_BLOCK(blocks[i],0);}
     #endif

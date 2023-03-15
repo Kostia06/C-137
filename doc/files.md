@@ -10,6 +10,7 @@ Read the code in this sequence as you go through it.
 4. [utils/include.h](../src/utils/include.h) <-- important methods
 5. [lexer/main.c](../src/lexer/main.c) <-- lexer that gets tokens
 6. [parser/node/main.c](../src/parser/node/main.c) <-- translates tokens into nodes
-7. [parser/block/main.c](../src/parser/block/main.c) <-- builds node blocks out of nodes with a parser action
-8. [compile/main.c](../src/compile/main.c) <-- translates blocks into C code and checks for errors
+7. [parser/macro/main.c](../src/parser/macro/main.c) <-- checks for macros and executes them
+8. [parser/block/main.c](../src/parser/block/main.c) <-- builds node blocks out of nodes with a parser action
+9. [compile/main.c](../src/compile/main.c) <-- translates blocks into C code and checks for errors
 
