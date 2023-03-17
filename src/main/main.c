@@ -15,18 +15,19 @@
 Config* new_config(int argc, char *argv[]){
     Config* config = malloc(sizeof(Config));
     config->input_file = "";
-    config->output_file = "output.c";
+    config->output_folder = "output.c";
     config->c_flags = "";
     config->compiler_mode = "compile";
     config->configured = 0;
     if(argc == 1){
+        check_lua();
         ERROR(!check_config(CONFIG_FILE),0,(char *[]){"Config file not found",NULL},__func__,"PUBLIC");
         ERROR(!check_config_table(CONFIG_FILE,"config"),0,(char *[]){"Table in the config file is not found",NULL},__func__,"PUBLIC");
         if(check_config_key(CONFIG_FILE,"config","_input_file")){
             config->input_file = read_config(CONFIG_FILE,"config","_input_file");
         }
-        if(check_config_key(CONFIG_FILE,"config","_output_file")){
-            config->output_file = read_config(CONFIG_FILE,"config","_output_file");
+        if(check_config_key(CONFIG_FILE,"config","_output_folder")){
+            config->output_folder = read_config(CONFIG_FILE,"config","_output_folder");
         }
         if(check_config_key(CONFIG_FILE,"config","_c_flags")){
             config->c_flags = read_config(CONFIG_FILE,"config","_c_flags");
@@ -38,7 +39,7 @@ Config* new_config(int argc, char *argv[]){
     }
     else{
         if(argc > 2){config->input_file = argv[1];}
-        if(argc > 3){config->output_file = argv[2];}
+        if(argc > 3){config->output_folder = argv[2];}
         if(argc > 4){config->c_flags = argv[3];}
         if(argc > 5){config->compiler_mode = argv[4];}
     }
@@ -52,7 +53,6 @@ int main(int argc, char *argv[]){
     HashTable* table = malloc(sizeof(HashTable));
     table->size = 0;
     Lexer* lexer = new_lexer(table,config);
-    hash_scope_init(table,config->input_file);
     lex(lexer);
 
     size_t node_size = 0;

@@ -1,9 +1,25 @@
 config = {
     _c_flags = "",
     _compiler_mode = "save",
-    _output_file = "../test/output.c",
-    _input_file = "../test/main.3f",
+    _output_folder = "../test/output",
+    _input_file = "../test/main.c137",
 }
 keywords = {
-
+    _function = "fn",
+    _variable = "var",
+    _constant = "const",
+    _if = "if",
+    _else_if = "elif",
+    _while = "while",
+    _for = "for",
+    _return = "return",
+    _break = "break",
+    _continue = "continue",
+    _i1 = "i1",
+    _i8 = "i8",
+    _i16 = "i16",
+    _i32 = "i32",
+    _i64 = "i64",
+    _double = "double",
+    _float = "float",
 }

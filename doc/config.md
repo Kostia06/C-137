@@ -32,11 +32,14 @@ inside the file create tables
         _return = "return",
         _break = "break",
         _continue = "continue",
-        _integer = "int",
+        _i1 = "i1",
+        _i8 = "i8",
+        _i16 = "i16",
+        _i32 = "i32",
+        _i64 = "i64",
         _double = "double",
         _float = "float",
-        _void = "void",
-        _character = "char"
+
     }
 
 ```

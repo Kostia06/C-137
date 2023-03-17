@@ -12,6 +12,7 @@
 
 #include "../utils/include.h"
 
+void check_lua();
 char* read_config(char* file, char* table, char* key);
 int check_config(char* file);
 int check_config_table(char* file, char* table);

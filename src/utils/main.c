@@ -12,8 +12,13 @@ static char* multiply_string(char* str,int times){
     }
     return new_str;
 }
-
-
+static int loop_count = 0;
+void ERROR_LOOP(int max){
+    if(loop_count++ > max){
+        printf("%sERROR%s[%s%d%s][%s%s%s][%s%s%s]\n",RED,WHITE,MAGENTA,0,WHITE,MAGENTA,"LOOP",WHITE,MAGENTA,"LOOP",WHITE);
+        exit(1);
+    }
+}
 void ERROR(int condition,int line,char **message,const char* fun,char* scope){
     if(!condition){return;}
     char *msg = malloc(sizeof(char));
@@ -131,21 +136,21 @@ char* TYPE(int type){
         "FUNCTION","PIPE_FUNCTION",
 
         "KEYWORD_START",
-            "FN","ENUM","VAR","USE","STRUCT",
-            "CONST","STATIC",
+            "FN","ENUM","VAR","STRUCT",
+            "CONST",
             "IF","ELIF",
             "WHILE","FOR",
             "RETURN","BREAK","CONTINUE",
         "KEYWORD_END",
 
         "TYPES_START",
-            "INT","DOUBLE","FLOAT",
-            "VOID","CHAR",
+            "I1","I8","I16","I32","I64",
+            "DOUBLE","FLOAT",
         "TYPES_END",
 
         "MACRO_REPLACE",
-        "MACRO_FUNCTION",
         "MACRO_DEFINE",
+        "MACRO_INCLUDE",
 
         "LPAREN", "RPAREN", // ()
         "LBRACE", "RBRACE", // {}

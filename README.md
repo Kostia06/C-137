@@ -11,7 +11,6 @@
 <hr>
 <h2>Key Features of C-137</h2>
 <ul>
-    <li><h3>Compiles Directly to C</h3></li>
     <li><h3>Highly Customizable syntax</h3></li>
 
 </ul>
@@ -20,5 +19,5 @@
 <h2>Things I want implement in the future</h2>
 <ul>
     <l1>reading files from the internet</l1>
-    <l1>use C header files</l1>
+    <l1>reference counting</l1>
 </ul>

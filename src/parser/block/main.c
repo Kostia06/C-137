@@ -24,7 +24,7 @@ static NodeBlock** level_block(NodeBlock** blocks, size_t size,int index,size_t*
                 NodeBlock** hold = malloc(sizeof(NodeBlock*));
                 size_t hold_size = 0;
                 int spacing = block->spacing;
-                ERROR(i >= (int)size,block->line,(char*[]){"Block did not receive any nodes",NULL},__func__,block->scope);
+                ERROR(i >= (int)size,block->line,(char*[]){"Block did not receive any blocks",NULL},__func__,block->scope);
                 if(blocks[i]->type == LBRACE){
                     int count = 1;
                     i++;

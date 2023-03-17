@@ -6,12 +6,13 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <math.h>
+#include <sys/stat.h>
 
 #include "../file/include.h"
 
 #define CONFIG_FILE "config.lua"
 
-#define MAX_HASH_SIZE 10000
+#define MAX_HASH_SIZE 100000
 
 #define     RESET "\033[0m"
 #define     BLACK "\033[1m\033[30m"
@@ -30,21 +31,21 @@ typedef enum{
     FUNCTION,PIPE_FUNCTION,
 
     KEYWORD_START,
-        FN,ENUM,VAR,USE,STRUCT,
-        CONST,STATIC,
+        FN,ENUM,VAR,STRUCT,
+        CONST,
         IF,ELIF,
         WHILE,FOR,   
         RETURN,BREAK,CONTINUE,     
     KEYWORD_END,
 
     TYPE_START,
-        INT,DOUBLE,FLOAT,
-        VOID,CHAR,
+        I1,I8,I16,I32,I64,
+        DOUBLE,FLOAT,
     TYPE_END,
 
     MACRO_REPLACE,
-    MACRO_FUNCTION,
     MACRO_DEFINE,
+    MACRO_INCLUDE,
 
 
     LPAREN, RPAREN, // ()
@@ -74,17 +75,23 @@ typedef struct NodeBlockStruct NodeBlock;
 typedef struct NodeStruct Node;
 typedef struct{
     char* input_file;
-    char* output_file;
+    char* output_folder;
     char* c_flags;
     char* compiler_mode;
     int configured;
 }Config;
 typedef struct{
+    int length;
+    int type;
+    int signedness; 
+    int pointer_size; 
+    int _static;
+}Type;
+typedef struct{
     int return_type,* arguments;
     int found;
     size_t size;
 } Function;
-
 typedef struct {
     int type;
     void* value;
@@ -127,6 +134,7 @@ typedef struct NodeStruct{
     size_t node_size;
 }Node;
 
+void ERROR_LOOP(int max);
 void ERROR(int condition,int line,char **message,const char* fun,char* scope);
 char* SINGLE_STRING(char**array);
 char* STRINGIFY(int value);

@@ -1,44 +1,43 @@
 #include "include.h"
 
-#define KEYWORD_SIZE        18
-
+#define KEYWORD_SIZE        19
 static char* keyword_config_names[KEYWORD_SIZE] = {
     "_function","_enumeration","_variable", "_structure",
-    "_constant","_static",
+    "_constant",
     "_if", "_else_if", 
     "_while", "_for",
     "_return", "_break", "_continue",
 
-    "_integer","_double","_float",
-    "_void","_character"
+    "_i1","_i8","_i16","_i32","_i64",
+    "_double","_float",
 };
 static char* keyword_names[KEYWORD_SIZE] = {
     "fn","enum","var","struct",
-    "const","static",
+    "const",
     "if", "elif", 
     "while", "for",
     "return", "break", "continue",
 
-    "int","double","float",
-    "void","char"
+    "i1", "i8", "i16", "i32", "i64",
+    "double","float",
 };
 static int keyword_types[KEYWORD_SIZE] = {
     FN,ENUM,VAR,STRUCT,
-    CONST,STATIC,
+    CONST,
     IF, ELIF, 
     WHILE,FOR,
     RETURN, BREAK, CONTINUE,
 
-    INT,DOUBLE,FLOAT,
-    VOID,CHAR,
+    I1,I8,I16,I32,I64,
+    DOUBLE,FLOAT,
 };
-#define MACRO_SIZE      3
 
+#define MACRO_SIZE      3
 static char* macro_names[MACRO_SIZE] = {
-    "replace","function","define",
+    "replace","define","include"
 };
 static int macro_types[MACRO_SIZE] = {
-    MACRO_REPLACE,MACRO_FUNCTION,MACRO_DEFINE,
+    MACRO_REPLACE,MACRO_DEFINE,MACRO_INCLUDE,
 };
 
 static int is_digit(char c){return (c >= '0' && c <= '9');}
@@ -280,6 +279,16 @@ static void lexer_macro(Lexer* lexer){
     lexer->token->type =lexer_macro_type(result,lexer);
     lexer->token->value = result;
 }
+static void lexer_comment(Lexer* lexer){
+    if(lexer_peek(lexer) == '/'){
+        while(lexer->current_char != '\n'){lexer_advance(lexer);}
+    }
+    else if(lexer_peek(lexer)=='*'){
+        while(lexer->index <= lexer->text_size && (lexer->current_char != '*' || lexer_peek(lexer) != '/')){lexer_advance(lexer);}
+        lexer_advance(lexer);
+        lexer_advance(lexer);
+    }
+}
 
 void lex(Lexer* lexer){
     lexer_advance(lexer);
@@ -301,6 +310,7 @@ void lex(Lexer* lexer){
             *(int*)lexer->token->value = lexer->spacing;
             goto add_token;
         }
+        if(lexer->current_char == '/'){lexer_comment(lexer);continue;}
         if(is_digit(lexer->current_char)){lexer_integer(lexer);goto add_token;}
         if(is_string(lexer->current_char)){lexer_string(lexer);goto add_token;}
         if(is_alpha(lexer->current_char) || lexer->current_char=='_'){lexer_keyword(lexer);goto add_token;}
