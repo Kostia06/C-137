@@ -107,6 +107,11 @@ NodeBlock** create_blocks(Node** nodes,size_t size,char* scope,size_t* return_si
             type = current_node->type;
             continue;
         }
+        if(current_node->type == EQUAL){
+            ERROR(type != EMPTY,current_node->line,(char*[]){"Too many parser types",NULL},__func__,scope);
+            type = VAR;
+            continue;
+        }
         hold = realloc(hold,sizeof(Node*) * (hold_size + 1));
         hold[hold_size++] = current_node;
     }

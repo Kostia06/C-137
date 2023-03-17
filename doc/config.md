@@ -15,8 +15,8 @@ inside the file create tables
     --configuration for running code
     config = {
         _c_flags = "",
-        -- compile / run /save
-        _compiler_mode = "save",
+        -- compile / run 
+        _compiler_mode = "compile",
         _output_file = "../test/output.c",
         _input_file = "../test/main.3f",
     }

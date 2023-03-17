@@ -81,11 +81,8 @@ typedef struct{
     int configured;
 }Config;
 typedef struct{
-    int length;
     int type;
-    int signedness; 
     int pointer_size; 
-    int _static;
 }Type;
 typedef struct{
     int return_type,* arguments;
@@ -93,7 +90,7 @@ typedef struct{
     size_t size;
 } Function;
 typedef struct {
-    int type;
+    Type* type;
     void* value;
 } HashEntry;
 typedef struct{
@@ -144,6 +141,7 @@ char** SPLIT(char* string,char* split,int* return_size);
 void PRINT_TOKEN(Token* token);
 void PRINT_BLOCK(NodeBlock* block,int level);
 void PRINT_NODE(Node* node,int level);
+void PRINT_TYPE(Type* type,int level);
 char* VALUE(void* value,int type);
 char* TYPE(int type);
 

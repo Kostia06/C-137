@@ -1,6 +1,6 @@
 config = {
     _c_flags = "",
-    _compiler_mode = "save",
+    _compiler_mode = "compile",
     _output_folder = "../test/output",
     _input_file = "../test/main.c137",
 }

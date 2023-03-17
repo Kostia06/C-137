@@ -123,6 +123,13 @@ void PRINT_NODE(Node* node,int level){
     }
   
 }
+void PRINT_TYPE(Type* type,int level){
+    char* tab = malloc(sizeof(char)*level);
+    for(int i=0;i<level;i++){tab[i] = '\t';}
+    printf("%sType:%s\n",tab,TYPE(type->type));
+    printf("%s\tPointer Size:%d\n",tab,type->pointer_size);
+    
+}
 char* VALUE(void* value,int type){
     if(type == EMPTY){return "EMPTY";}
     if(type == INTEGER || type == NEW_LINE || type == SEMICOLON || type == LBRACE){return STRINGIFY(*(int*)value);}

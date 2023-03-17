@@ -53,6 +53,7 @@ int main(int argc, char *argv[]){
     HashTable* table = malloc(sizeof(HashTable));
     table->size = 0;
     Lexer* lexer = new_lexer(table,config);
+    hash_scope_init(table,config->input_file);
     lex(lexer);
 
     size_t node_size = 0;
@@ -74,5 +75,7 @@ int main(int argc, char *argv[]){
     #endif
 
     compile(table,config,blocks,block_size);
+
+    hash_print(table);
     return 0;
 }

@@ -18,7 +18,7 @@ void hash_scope_init(HashTable* table,char* scope){
     table->names[table->size++] = scope;
 }
 
-void hash_entry_init(HashTable* table,char* scope,int name,int type){
+void hash_entry_init(HashTable* table,char* scope,int name,Type* type){
     int index = hash_id(scope);
     HashScope* hash_scope = table->entries[index];
     ERROR(hash_scope==NULL,0,(char*[]){"Hash table \"scope\" not found, \"",scope,"\"",NULL},__func__,scope);
@@ -28,7 +28,7 @@ void hash_entry_init(HashTable* table,char* scope,int name,int type){
     hash_scope->entries[name] = hash_entry;
     hash_scope->ids[hash_scope->size++] = name;
 }
-int hash_get_entry_type(HashTable* table,int scope,int name){
+Type* hash_get_entry_type(HashTable* table,int scope,int name){
     HashScope* hash_scope = table->entries[scope];
     HashEntry* hash_entry = hash_scope->entries[name];
     return hash_entry->type;
@@ -58,17 +58,15 @@ int hash_find(HashTable* table,char* scope,int name){
 }
 
 void hash_print(HashTable* table){
-    // for(int i=0;i<table->size;i++){
-    //     int id_scope = table->ids[i];
-    //     HashScope* hash_scope = table->entries[id_scope];
-    //     printf("%d:Scope: %s\t%d\n",i,table->names[i],table->ids[i]);
-    //     for(int j=0;j<hash_scope->size;j++){
-    //         int id_entry = hash_scope->ids[j];
-    //         HashEntry* hash_entry = hash_scope->entries[id_entry];
-    //         int type = hash_entry->type;
-    //         char* stars = malloc(sizeof(char)*type.size);
-    //         for(int k=0;k<type.size;k++) stars[k] = '*';
-    //         printf("\t%d:Entry: %d\tType: %s%s\n",j,id_entry,TYPE(type),stars);
-    //     }
-    // }
+    for(int i=0;i<table->size;i++){
+        int id_scope = table->ids[i];
+        HashScope* hash_scope = table->entries[id_scope];
+        printf("%d:Scope: %s\t%d\n",i,table->names[i],table->ids[i]);
+        for(int j=0;j<hash_scope->size;j++){
+            int id_entry = hash_scope->ids[j];
+            HashEntry* hash_entry = hash_scope->entries[id_entry];
+            printf("\t%d:Entry: %d\t%s-%d\n",j,id_entry,TYPE(hash_entry->type->type),hash_entry->type->pointer_size);
+
+        }
+    }
 }
