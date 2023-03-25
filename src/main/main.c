@@ -2,20 +2,16 @@
 #include "../hash/include.h"
 #include "../lexer/include.h"
 #include "../parser/node/include.h"
-#include "../parser/macro/include.h"
 #include "../parser/block/include.h"
-#include "../compile/include.h"
-#include "../config/include.h"
+#include "../parser/macro/include.h"
 
-#define DEBUG_TOKEN     0
+#define DEBUG_TOKEN     1
 #define DEBUG_NODE      0
 #define DEBUG_MACRO     0
 #define DEBUG_BLOCK     0
 
 Config* new_config(int argc, char *argv[]){
     Config* config = malloc(sizeof(Config));
-    config->input_file = "";
-    config->output_folder = "output.c";
     config->c_flags = "";
     config->compiler_mode = "compile";
     config->configured = 0;
@@ -49,17 +45,18 @@ Config* new_config(int argc, char *argv[]){
 int main(int argc, char *argv[]){
     Config* config = new_config(argc,argv);
     int path_size = 0;
-
     HashTable* table = malloc(sizeof(HashTable));
     table->size = 0;
-    Lexer* lexer = new_lexer(table,config);
+    Lexer* lexer = new_lexer(config);
     hash_scope_init(table,config->input_file);
     lex(lexer);
-
+    #if DEBUG_TOKEN == 1
+        for(int i =0;i<(int)lexer->token_size;i++){PRINT_TOKEN(lexer->tokens[i]);}
+    #endif
     size_t node_size = 0;
-    Node** nodes = build_nodes(lexer->tokens,"",lexer->token_size,&node_size);
+    Node** nodes = build_nodes(lexer->tokens,config->input_file,lexer->token_size,&node_size);
     #if DEBUG_NODE == 1
-        for(int i =0;i<(int)node_size;i++){PRINT_NODE(nodes[i],0);}
+        for(i =0;i<(int)node_size;i++){PRINT_NODE(nodes[i],0);}
     #endif
 
     size_t macro_size = 0;
@@ -74,7 +71,7 @@ int main(int argc, char *argv[]){
         for(int i =0;i<(int)block_size;i++){PRINT_BLOCK(blocks[i],0);}
     #endif
 
-    compile(table,config,blocks,block_size);
+    // compile(table,config,blocks,block_size);
 
     hash_print(table);
     return 0;

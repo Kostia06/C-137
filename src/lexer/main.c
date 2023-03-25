@@ -1,50 +1,65 @@
 #include "include.h"
+typedef struct{
+    char* config_name,*name;
+    int type;
+}Keyword;
 
-#define KEYWORD_SIZE        19
-static char* keyword_config_names[KEYWORD_SIZE] = {
-    "_function","_enumeration","_variable", "_structure",
-    "_constant",
-    "_if", "_else_if", 
-    "_while", "_for",
-    "_return", "_break", "_continue",
-
-    "_i1","_i8","_i16","_i32","_i64",
-    "_double","_float",
-};
-static char* keyword_names[KEYWORD_SIZE] = {
-    "fn","enum","var","struct",
-    "const",
-    "if", "elif", 
-    "while", "for",
-    "return", "break", "continue",
-
-    "i1", "i8", "i16", "i32", "i64",
-    "double","float",
-};
-static int keyword_types[KEYWORD_SIZE] = {
-    FN,ENUM,VAR,STRUCT,
-    CONST,
-    IF, ELIF, 
-    WHILE,FOR,
-    RETURN, BREAK, CONTINUE,
-
-    I1,I8,I16,I32,I64,
-    DOUBLE,FLOAT,
+#define KEYWORD_SIZE        17
+static Keyword keywords[KEYWORD_SIZE]={
+    {"_function","fn",FUNCTION},
+    {"_enumeration","enum",ENUMERATOR},
+    {"_variable","var",VARIABLE},
+    {"_structure","struct",STRUCTURE},
+    {"_if","if",IF},
+    {"_else_if","elif",ELIF},
+    {"_while","while",WHILE},
+    {"_for","for",FOR},
+    {"_return","return",RETURN},
+    {"_break","break",BREAK},
+    {"_continue","continue",CONTINUE},
+    {"_i1","i1",I1},
+    {"_i8","i8",I8},
+    {"_i16","i16",I16},
+    {"_i32","i32",I32},
+    {"_i64","i64",I64},
+    {"_replace","replace",MACRO_REPLACE},
 };
 
-#define MACRO_SIZE      3
-static char* macro_names[MACRO_SIZE] = {
-    "replace","define","include"
+#define SIDES_SIZE 22
+static Keyword sides[SIDES_SIZE] = {
+    {"_add","+",PLUS},
+    {"_subtract","-",MINUS},
+    {"_multiply","*",STAR},
+    {"_divide","/",BACKSLASH},
+    {"_power","^",CARET},
+    {"_modulus","%",PERCENT},
+    {"_argument_start","(",ARGUMENT_START},
+    {"_argument_end",")",ARGUMENT_END},
+    {"_array_start","[",ARRAY_START},
+    {"_array_end","]",ARRAY_END},
+    {"_bind_start","{",FUNCTION_START},
+    {"_bind_end","}",FUNCTION_END},
+    {"_opposite","!",BANG},
+    {"_less_than","<",LT},
+    {"_greater_than",">",GT},
+    {"_less_equal_than","<=",LT_EQUAL},
+    {"_greater_equal_than",">=",GT_EQUAL},
+    {"_opposite_equal","!=",BANG_EQUAL},
+    {"_equal_equal","==",EQUAL_EQUAL},
+    {"_or","||",OR},
+    {"_and","&&",AND},
+    {"_skip","\\",SKIP},
 };
-static int macro_types[MACRO_SIZE] = {
-    MACRO_REPLACE,MACRO_DEFINE,MACRO_INCLUDE,
-};
+
+#define SEQUENCES_SIZE 5
+static char* sequence_start[SEQUENCES_SIZE] = {"\"","'","`","/*","//"};
+static char* sequence_end[SEQUENCES_SIZE] = {"\"","'","`","*/","\n"};
+static int sequence_type[SEQUENCES_SIZE] = {STRING,STRING,STRING,EMPTY,EMPTY};
 
 static int is_digit(char c){return (c >= '0' && c <= '9');}
 static int is_string(char c){return c == '\"' || c == '\''|| c == '`';}
 static int is_alpha(char c){return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');}
 static int is_alphanumeric(char c){return is_digit(c) || is_alpha(c) || c=='_';}
-static int is_directory(char c){return is_digit(c) || is_alpha(c) || c == '_' || c== '/'|| c=='.' ;}
 
 static void lexer_advance(Lexer* lexer){
     lexer->current_char = lexer->text[lexer->index++];
@@ -58,49 +73,19 @@ static char lexer_peek(Lexer* lexer){
     if(lexer->index >= lexer->text_size){return '\0';}
     return lexer->text[lexer->index];
 }
-static int lexer_keyword_type(char* word){
-    char* new_word = LOWER(word);
-    for(int i = 0;i < KEYWORD_SIZE;i++){
-        if(!strcmp(new_word,keyword_names[i])){return keyword_types[i];}
+static char* lexer_long_peek(Lexer* lexer,int length){
+    char* result = malloc(sizeof(char)*length);
+    for(int i=0;i<length;i++){
+        if(lexer->index-1+i >= lexer->text_size){result[i] = '\0';}
+        else{result[i] = lexer->text[lexer->index-1+i];}
     }
-    return IDENTIFIER;
+    return result;
 }
-static int lexer_macro_type(char* word,Lexer* lexer){
-    char* new_word = LOWER(word);
-    for(int i = 0;i < MACRO_SIZE;i++){
-        if(!strcmp(new_word,macro_names[i])){return macro_types[i];}
-    }
-    ERROR(1,lexer->token->line,(char*[]){"Macro \"",word,"\" doesn't exist",NULL},__func__,lexer->current_file);
-    return EMPTY;
-}
-static int lexer_sign_type(char c,int line,char* scope){
-    switch(c){
-        case '+':return PLUS;
-        case '-':return MINUS;
-        case '*':return STAR;
-        case '/':return BACKSLASH;
-        case '^':return CARET;
-        case '%':return PERCENT;
-        case '=':return EQUAL;
-        case '(':return LPAREN;
-        case ')':return RPAREN;
-        case '[':return LBRACKET;
-        case ']':return RBRACKET;
-        case '{':return LBRACE;
-        case '}':return RBRACE;
-        case '!':return BANG;
-        case ',':return COMMA;
-        case '<':return LT;
-        case '>':return GT;
-        case '&':return AMPERSAND;
-        case '|':return PIPE;
-        case ';':return SEMICOLON;
-        case '\\':return SKIP;
-        default:{
-            ERROR(1,line, (char *[]){"Unexpected character \"",STRINGIFY_CHAR(c),"\"",NULL},__func__,scope);
-        }
-    }
-    return EOF;
+
+static int compare_keywords(const void* a, const void* b){
+    Keyword* a1 = (Keyword*)a;
+    Keyword* b1 = (Keyword*)b;
+    return strlen(b1->name)-strlen(a1->name);
 }
 
 static void lexer_integer(Lexer* lexer){
@@ -127,41 +112,28 @@ static void lexer_integer(Lexer* lexer){
         value = value * 10 + (lexer->current_char - '0');
         lexer_advance(lexer);
     }
-    value = lexer->negative ? value * -1 : value;
-    lexer->negative = 0;
     lexer->token->value = malloc(sizeof(int));
     *(int*)lexer->token->value = value;
 }
-static void lexer_string(Lexer* lexer){
-    lexer->token->type = STRING;
+static void lexer_sequence(Lexer* lexer,char* end,int type){
+    lexer->token->type = type;
     char* replace_sequences = "\"\'nrt0";
-    char* replace_colors = "012345678";
     char *result = malloc(sizeof(char));
-    int len = 0;
-    char end = lexer->current_char;
+    int len = 0, end_len = strlen(end),found =0;
+    
     lexer_advance(lexer);
-    while(end != lexer->current_char && lexer->index < lexer->text_size){
+    while(lexer->index < lexer->text_size){
+        char* peek = lexer_long_peek(lexer,end_len);
+        if(!strcmp(peek,end)){
+            for(int i=0;i<end_len;i++){lexer_advance(lexer);}
+            found = 1;
+            free(peek);
+            break;
+        }
+        free(peek);
         result = realloc(result, sizeof(char) * (len + 1));
         result[len++] = lexer->current_char;
         lexer_advance(lexer);
-        if(len>0 && strchr(replace_colors,lexer->current_char)!=NULL&&result[len-1]=='%'){
-            char* value;
-            switch(lexer->current_char){
-                case '0':value = WHITE;break;
-                case '1':value = RED;break;
-                case '2':value = YELLOW;break;
-                case '3':value = GREEN;break;
-                case '4':value = BLUE;break;
-                case '5':value = CYAN;break;
-                case '6':value = MAGENTA;break;
-                case '7':value = BLACK;break;
-                case '8':value = RESET;break;
-            }
-            result[len-1] = '\0';
-            result = realloc(result, sizeof(char) * (len + strlen(value)));
-            strcat(result,value);
-            lexer_advance(lexer);
-        }
         if(len>0 && strchr(replace_sequences, lexer->current_char) != NULL && result[len-1] == '\\'){
             switch(lexer->current_char){
                 case 'n':result[len-1] = '\n';break;
@@ -177,10 +149,8 @@ static void lexer_string(Lexer* lexer){
     result = realloc(result, sizeof(char) * (len + 1));
     result[len] = '\0';
     lexer->token->value = result;
-    if(lexer->current_char != end){
-        ERROR(1,lexer->token->line, (char*[]){"Unmatched ",STRINGIFY_CHAR(end),NULL},__func__,lexer->current_file);
-    }
-    lexer_advance(lexer);
+    ERROR(!found,lexer->token->line, (char*[]){"Unmatched ",end,NULL},__func__,lexer->current_file);
+    
 }
 static void lexer_keyword(Lexer* lexer){
     char *result = malloc(sizeof(char));
@@ -192,92 +162,13 @@ static void lexer_keyword(Lexer* lexer){
     }
     result = realloc(result, sizeof(char) * (len + 1));
     result[len] = '\0';
-    lexer->token->type = lexer_keyword_type(result);
     lexer->token->value = result;
-}
-static void lexer_function(Lexer* lexer){
-    lexer_advance(lexer);
-    char *result = malloc(sizeof(char));
-    int len = 0;
-    while (is_alphanumeric(lexer->current_char)){
-        result = realloc(result, sizeof(char) * (len + 1));
-        result[len++] = lexer->current_char;
-        lexer_advance(lexer);
-    }
-    lexer->token->type = PIPE_FUNCTION;
-    lexer->token->value = result;
-}
-static void lexer_sign(Lexer* lexer){
-    lexer->token->type = lexer_sign_type(lexer->current_char, lexer->token->line,lexer->current_file);
-    char* value = malloc(sizeof(char) * 3);
-    value[0] = lexer->current_char;
-    value[1] = '\0';
-    lexer_advance(lexer);
-    switch(lexer->token->type){
-        case EQUAL:{
-            if(lexer->current_char == '='){
-                lexer->token->type = EQUAL_EQUAL;
-                value[1] = '=';value[2] = '\0';
-                lexer_advance(lexer);
-            }
-            break;
-        }
-        case LT:{
-            if(lexer->current_char == '='){
-                lexer->token->type = LT_EQUAL;
-                value[1] = '=';value[2] = '\0';
-                lexer_advance(lexer);
-            }
-            break;
-        }
-        case GT:{
-            if(lexer->current_char == '='){
-                lexer->token->type = LT_EQUAL;
-                value[1] = '=';value[2] = '\0';
-                lexer_advance(lexer);
-            }
-            break;
-        }
-        case AMPERSAND:{
-            if(lexer->current_char == '&'){
-                lexer->token->type = AMPERSAND_AMPERSAND;
-                value[1] = '&';value[2] = '\0';
-                lexer_advance(lexer);
-                break;
-            }
-            ERROR(1,lexer->line, (char*[]){"Ampersand must be followed by another Ampersand, '&'",NULL},__func__,lexer->current_file);
-        }
-        case PIPE:{
-            if(lexer->current_char == '|'){
-                lexer->token->type = PIPE_PIPE;
-                value[1] = '|';value[2] = '\0';
-                lexer_advance(lexer);
-                break;
-            }
-            ERROR(1,lexer->line, (char*[]){"Pipe must be followed by another Pipe, '|'",NULL},__func__,lexer->current_file);
-        }
-        case BANG:{
-            if(lexer->current_char == '='){
-                lexer->token->type = BANG_EQUAL;
-                value[1] = '=';value[2] = '\0';
-                lexer_advance(lexer);
-            }
-            break;
+    for(int i=0;i<KEYWORD_SIZE;i++){
+        if(!strcmp(result, keywords[i].name)){
+            lexer->token->type = keywords[i].type;return;
         }
     }
-    lexer->token->value = value;
-}
-static void lexer_macro(Lexer* lexer){
-    lexer_advance(lexer);
-    char *result = malloc(sizeof(char));
-    int len = 0;
-    while (is_alphanumeric(lexer->current_char)){
-        result = realloc(result, sizeof(char) * (len + 1));
-        result[len++] = lexer->current_char;
-        lexer_advance(lexer);
-    }
-    lexer->token->type =lexer_macro_type(result,lexer);
-    lexer->token->value = result;
+    lexer->token->type = IDENTIFIER;
 }
 static void lexer_comment(Lexer* lexer){
     if(lexer_peek(lexer) == '/'){
@@ -288,6 +179,22 @@ static void lexer_comment(Lexer* lexer){
         lexer_advance(lexer);
         lexer_advance(lexer);
     }
+}
+static void lexer_sign(Lexer* lexer){
+    int long_peek_len = 0;
+    char* long_peek;
+    for(int i=0;i<SIDES_SIZE;i++){
+        int len = strlen(sides[i].name);
+        if(long_peek_len!=len){free(long_peek);long_peek = lexer_long_peek(lexer, len);}
+        if(!strncmp(long_peek, sides[i].name, len)){
+            lexer->token->type = sides[i].type;
+            lexer->token->value = malloc(sizeof(char)*len);
+            lexer->token->value = sides[i].name;
+            for(int j=0;j<len;j++){lexer_advance(lexer);}
+            return;
+        }
+    }
+    ERROR(1,lexer->token->line, (char*[]){"Unexpected character ",STRINGIFY_CHAR(lexer->current_char),NULL},__func__,lexer->current_file);
 }
 
 void lex(Lexer* lexer){
@@ -310,50 +217,44 @@ void lex(Lexer* lexer){
             *(int*)lexer->token->value = lexer->spacing;
             goto add_token;
         }
-        if(lexer->current_char == '/'){lexer_comment(lexer);continue;}
         if(is_digit(lexer->current_char)){lexer_integer(lexer);goto add_token;}
-        if(is_string(lexer->current_char)){lexer_string(lexer);goto add_token;}
+        for(int i=0;i<SEQUENCES_SIZE;i++){
+            char* peek = lexer_long_peek(lexer, strlen(sequence_start[i]));
+            if(!strcmp(peek, sequence_start[i])){
+                free(peek);
+                lexer_sequence(lexer,sequence_end[i],sequence_type[i]);
+                goto add_token;
+            }
+        }
         if(is_alpha(lexer->current_char) || lexer->current_char=='_'){lexer_keyword(lexer);goto add_token;}
-        if(lexer->current_char == '.'){lexer_function(lexer);goto add_token;}
-        if(lexer->current_char == '#'){lexer_macro(lexer);goto add_token;}
         lexer_sign(lexer);
         if(lexer->token->type == SKIP){lexer_advance(lexer);continue;}
-        if(lexer->token->type == SEMICOLON || lexer->token->type == LBRACE){
+        if(lexer->token->type == SEMICOLON || lexer->token->type == FUNCTION_START){
             lexer->token->value = malloc(sizeof(int));
             *(int*)lexer->token->value = lexer->spacing+1;
         }
         goto add_token;
         add_token:
+            if(lexer->token->type == EMPTY){continue;}
             lexer->tokens = realloc(lexer->tokens, sizeof(Token*) * (lexer->token_size + 1));
             lexer->tokens[lexer->token_size++] = lexer->token;
             lexer->last_type = lexer->token->type;
     }
     ERROR(lexer->last_type != NEW_LINE,lexer->line,(char *[]){"End of file should end with a new line",NULL},__func__,lexer->current_file);
 }   
-Lexer* new_lexer(HashTable* table,Config* config){
+Lexer* new_lexer(Config* config){
     Lexer* lexer = malloc(sizeof(Lexer));
     lexer->token = malloc(sizeof(Token));
     lexer->tokens = malloc(sizeof(Token*));
     lexer->token_size = 0;
     lexer->line = 1;
     lexer->column = 0;
-    lexer->negative = 0;
     lexer->index = 0;
     lexer->spacing = 0;
     lexer->current_char = '\0';
-    lexer->table = table;
     lexer->last_type = EMPTY;
-    if(config->configured){
-        ERROR(!check_config(CONFIG_FILE),0,(char *[]){"Config file not found",NULL},__func__,"PUBLIC");
-        ERROR(!check_config_table(CONFIG_FILE,"config"),0,(char *[]){"Table in the config file is not found",NULL},__func__,"PUBLIC");
-        if(check_config_table(CONFIG_FILE,"keywords")){
-            for(int i=0;i<KEYWORD_SIZE;i++){
-                if(check_config_key(CONFIG_FILE,"keywords",keyword_config_names[i])){
-                    keyword_names[i] = read_config(CONFIG_FILE,"keywords",keyword_config_names[i]);
-                }
-            }
-        }
-    }
+    qsort(keywords, KEYWORD_SIZE, sizeof(Keyword), compare_keywords);
+    qsort(sides,SIDES_SIZE, sizeof(Keyword), compare_keywords);
     lexer->text = read_file(config->input_file);
     lexer->text_size = strlen(lexer->text);
     lexer->current_file = config->input_file;

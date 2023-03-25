@@ -26,13 +26,11 @@
 
 typedef enum{
     EMPTY,INTEGER,STRING,
-    IDENTIFIER,BLOCK,
+    IDENTIFIER,
     ARRAY,ARGUMENT,
-    FUNCTION,PIPE_FUNCTION,
 
     KEYWORD_START,
-        FN,ENUM,VAR,STRUCT,
-        CONST,
+        FUNCTION,ENUMERATOR,VARIABLE,STRUCTURE,
         IF,ELIF,
         WHILE,FOR,   
         RETURN,BREAK,CONTINUE,     
@@ -44,31 +42,25 @@ typedef enum{
     TYPE_END,
 
     MACRO_REPLACE,
-    MACRO_DEFINE,
-    MACRO_INCLUDE,
 
-
-    LPAREN, RPAREN, // ()
-    LBRACE, RBRACE, // {}
-    LBRACKET, RBRACKET, // []
+    ARGUMENT_START,ARGUMENT_END,
+    FUNCTION_START,FUNCTION_END,
+    ARRAY_START,ARRAY_END,
     COMMA, // ,
     BANG, //!
     LT, GT, // < >
     LT_EQUAL, GT_EQUAL, // <= >=
     BANG_EQUAL, EQUAL_EQUAL, // != ==
-    PIPE_PIPE, AMPERSAND_AMPERSAND, // || &&
+    OR, AND, // || &&
     SKIP,
     NEW_LINE,SEMICOLON, // \n ;
-    PIPE, AMPERSAND, // | &
 
     ACTION_START,
         PLUS, MINUS, // + -
         STAR, BACKSLASH, // * /
         CARET, PERCENT, // ^ %
     ACTION_END,
-
-    EQUAL, // =
-
+    
     END,
 } Types;
 typedef struct NodeBlockStruct NodeBlock;
@@ -108,10 +100,9 @@ typedef struct{
 }Token;
 typedef struct{
     Token** tokens,*token;
-    HashTable* table;
+    int last_type;
     char current_char;
     char *text,*current_file;
-    int last_type,negative;
     size_t token_size,index,text_size,spacing;
     size_t line,column;
 }Lexer;

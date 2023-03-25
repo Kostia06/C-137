@@ -132,45 +132,40 @@ void PRINT_TYPE(Type* type,int level){
 }
 char* VALUE(void* value,int type){
     if(type == EMPTY){return "EMPTY";}
-    if(type == INTEGER || type == NEW_LINE || type == SEMICOLON || type == LBRACE){return STRINGIFY(*(int*)value);}
+    if(type == INTEGER || type == NEW_LINE || type == SEMICOLON || type == FUNCTION_START){return STRINGIFY(*(int*)value);}
     return (char*)value;
 }
 char* TYPE(int type){
     return (char*[]){
         "EMPTY","INTEGER","STRING",
-        "IDENTIFIER","BLOCK",
+        "IDENTIFIER",
         "ARRAY","ARGUMENT",
-        "FUNCTION","PIPE_FUNCTION",
 
         "KEYWORD_START",
-            "FN","ENUM","VAR","STRUCT",
-            "CONST",
+            "FUNCTION","ENUMERATOR","VARIABLE","STRUCTURE",
             "IF","ELIF",
             "WHILE","FOR",
             "RETURN","BREAK","CONTINUE",
         "KEYWORD_END",
 
-        "TYPES_START",
+        "TYPE_START",
             "I1","I8","I16","I32","I64",
             "DOUBLE","FLOAT",
-        "TYPES_END",
+        "TYPE_END",
 
         "MACRO_REPLACE",
-        "MACRO_DEFINE",
-        "MACRO_INCLUDE",
 
-        "LPAREN", "RPAREN", // ()
-        "LBRACE", "RBRACE", // {}
-        "LBRACKET", "RBRACKET", // []
+        "ARGUMENT_START","ARGUMENT_END",
+        "FUNCTION_START","FUNCTION_END",
+        "ARRAY_START","ARRAY_END",
         "COMMA", // ,
-        "BANG", // !
+        "BANG", //!
         "LT", "GT", // < >
         "LT_EQUAL", "GT_EQUAL", // <= >=
         "BANG_EQUAL", "EQUAL_EQUAL", // != ==
-        "PIPE_PIPE", "AMPERSAND_AMPERSAND", // || &&
+        "OR", "AND", // || &&
         "SKIP",
-        "NEW_LINE","SEMICOLON", // ; \n
-        "PIPE", "AMPERSAND", // | &
+        "NEW_LINE","SEMICOLON", // \n ;
 
         "ACTION_START",
             "PLUS", "MINUS", // + -
@@ -178,8 +173,6 @@ char* TYPE(int type){
             "CARET", "PERCENT", // ^ %
         "ACTION_END",
 
-        "EQUAL", // =
-        
-        "END"
+        "END",
     }[type];
 }

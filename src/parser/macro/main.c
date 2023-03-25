@@ -1,5 +1,4 @@
 #include "include.h"
-
 typedef struct{
     size_t size;
     Node** nodes;
@@ -50,8 +49,6 @@ Node** create_macro(Node** nodes,size_t size,char* scope,size_t* return_size){
                     size++;
                 }
                 index++;
-                ERROR_LOOP(1);
-
                 continue;
             }
         }

@@ -43,15 +43,15 @@ Node** build_nodes(Token** tokens,char* scope,size_t size,size_t* return_size){
         Token* current_token = tokens[index];
         nodes = realloc(nodes,sizeof(Node*)*(node_size+1));
         switch(current_token->type){
-            case LPAREN:{
-                Node* node = loop_nodes(tokens,size,index,scope,LPAREN,RPAREN,&index);
+            case ARGUMENT_START:{
+                Node* node = loop_nodes(tokens,size,index,scope,ARGUMENT_START,ARGUMENT_END,&index);
                 node->type = ARGUMENT;
                 node->line = current_token->line;
                 nodes[node_size++] = node;
                 break;
             }
-            case LBRACKET:{
-                Node* node = loop_nodes(tokens,size,index,scope,LBRACKET,RBRACKET,&index);
+            case ARRAY_START:{
+                Node* node = loop_nodes(tokens,size,index,scope,ARRAY_START,ARRAY_END,&index);
                 node->line = current_token->line;
                 node->type = ARRAY;
                 nodes[node_size++] = node;

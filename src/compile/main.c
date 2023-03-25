@@ -1,6 +1,5 @@
 #include "include.h"
 
-
 static void split_type_and_value(Node** nodes,size_t size, int index,char* scope,Type** return_type,Node*** return_value,size_t* return_value_size){
     Type* type = malloc(sizeof(Type));
     Node** value = malloc(sizeof(Node*));
@@ -34,20 +33,31 @@ static void split_type_and_value(Node** nodes,size_t size, int index,char* scope
 
 static void compile_variable(HashTable* table, NodeBlock* block){
     ERROR(block->node_size < 2,block->line,(char*[]){"Variable declaration must have a name and a value",NULL},__func__,block->scope);
-    ERROR(block->nodes[0]->type != IDENTIFIER,block->line,(char*[]){"Variable declaration must have a name",NULL},__func__,block->scope);
+
+    Type* type;
+    Node** values;
+    size_t value_size;  
+    split_type_and_value(block->nodes,block->node_size,0,block->scope,&type,&values,&value_size);
+
+    ERROR(values[0]->type != IDENTIFIER,block->line,(char*[]){"Variable declaration must have a name",NULL},__func__,block->scope);
     char* name = (char*)block->nodes[0]->value;
     int name_id = hash_id(name);
     int found = hash_find(table,block->scope,name_id);
-
-    Type* type;
-    Node** value;
-    size_t value_size;  
-    split_type_and_value(block->nodes,block->node_size,1,block->scope,&type,&value,&value_size);
 
     hash_entry_init(table,block->scope,name_id,type);
 }
 static void compile_function(HashTable* table, NodeBlock* block){
     ERROR(block->node_size < 2,block->line,(char*[]){"Function declaration must have a name, type and parameters",NULL},__func__,block->scope);
+    
+    Type* type;
+    Node** values;
+    size_t value_size;  
+    split_type_and_value(block->nodes,block->node_size,1,block->scope,&type,&values,&value_size);
+    
+    ERROR(value_size < 2,block->line,(char*[]){"Function declaration missing a name or argument",NULL},__func__,block->scope);
+    ERROR(values[0]->type != IDENTIFIER,block->line,(char*[]){"Function declaration must have a name",NULL},__func__,block->scope);
+    ERROR(values[1]->type != ARGUMENT,block->line,(char*[]){"Function declaration must have parameters",NULL},__func__,block->scope);
+
     char* name = (char*)block->nodes[0]->value;
     int name_id = hash_id(name);
     int scope_id = hash_find(table,block->scope,name_id);
@@ -69,8 +79,8 @@ void compile(HashTable* table,Config* config,NodeBlock** blocks,size_t size){
         for(int i=0;i<(int)size;i++){
             NodeBlock* block = blocks[i];
             switch(block->type){
-                case VAR:{compile_variable(table,block);break;}
-                case FN:{compile_function(table,block);break;}
+                case VARIABLE:{compile_variable(table,block);break;}
+                case FUNCTION:{compile_function(table,block);break;}
                 default:{ERROR(1,block->line,(char*[]){"Block type not found",NULL},__func__,block->scope);}    
             }
             // PRINT_BLOCK(block,0);

@@ -7,7 +7,7 @@
 #include "../config/include.h"
 
 void lex(Lexer* lexer);
-Lexer* new_lexer(HashTable* table,Config* config);
+Lexer* new_lexer(Config* config);
 
 
 #endif
