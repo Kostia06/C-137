@@ -3,9 +3,9 @@
 </center>
 <center>
 
-[Reference](doc/reference.md) |[Configuration](doc/config.md) |
+[Reference](doc/reference.md) |
 [Source files](doc/files.md) |
-[Syntax](doc/syntax.md) 
+[Syntax](doc/syntax.md)
 
 </center>
 <hr>

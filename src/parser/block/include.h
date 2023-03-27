@@ -4,6 +4,6 @@
 #include "../../utils/include.h"
 #include "../../hash/include.h"
 
-NodeBlock** create_blocks(Node** nodes,size_t size,char* scope,size_t* return_size);
+TokenBlock** create_blocks(Token** tokens,size_t size,char* scope,size_t* return_size);
 
 #endif

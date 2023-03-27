@@ -4,6 +4,6 @@
 #include "../../utils/include.h"
 #include "../../hash/include.h"
 
-Node** create_macro(Node** nodes,size_t size,char* scope,size_t* return_size);
+Token** create_macro(Token** tokens,size_t size,char* scope,size_t* return_size);
 
 #endif

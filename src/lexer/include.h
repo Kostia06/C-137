@@ -4,10 +4,10 @@
 #include "../utils/include.h"
 #include "../hash/include.h"
 #include "../file/include.h"
-#include "../config/include.h"
 
 void lex(Lexer* lexer);
-Lexer* new_lexer(Config* config);
+Token** format(Token** tokens, char* scope, size_t size,size_t* return_size);
+Lexer* new_lexer(char* path);
 
 
 #endif

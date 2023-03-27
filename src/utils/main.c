@@ -100,39 +100,41 @@ char** SPLIT(char* string,char* split,int* return_size){
     *return_size = i;
     return array;
 }
-void PRINT_TOKEN(Token* token){
-    printf("Token:%d:%d\t\t%s\t\t%s\n",token->line,token->column,VALUE(token->value,token->type),TYPE(token->type)); \
-}
-void PRINT_BLOCK(NodeBlock* block,int level){
+void PRINT_TOKEN(Token* token,int level){
     char* tab = malloc(sizeof(char)*level);
     for(int i=0;i<level;i++){tab[i] = '\t';}
-    printf("%s%d:Block\t%s\t%s\tsize:%zu\tline:%d\tspacing:%d\n",tab,block->index,TYPE(block->type),block->scope,block->node_size,block->line,block->spacing);
+    printf("%sToken:%d:%s",tab,token->line,TYPE(token->type));
+    if(token->type == ARGUMENT || token->type == ARRAY){
+        printf("\n");
+        Token** tokens = token->value;
+        for(int i=0;tokens[i]!=NULL;i++){
+            PRINT_TOKEN(tokens[i],level+1);
+        }
+    }
+    else{printf(":%s;\n",VALUE(token->value,token->type));}
+}
+void PRINT_BLOCK(TokenBlock* block,int level){
+    char* tab = malloc(sizeof(char)*level);
+    for(int i=0;i<level;i++){tab[i] = '\t';}
+    printf("%s%d:Block\t%s\t%s\tsize:%zu\tline:%d\tspacing:%d\n",tab,block->index,TYPE(block->type),block->scope,block->token_size,block->line,block->spacing);
     for(int i=0;i<(int)block->block_size;i++){
         PRINT_BLOCK(block->blocks[i],level+1);
     }
-    for(int i=0;i<(int)(block->node_size);i++){
-        PRINT_NODE(block->nodes[i],level+1);
+    for(int i=0;i<(int)(block->token_size);i++){
+        PRINT_TOKEN(block->tokens[i],level+1);
     }
-}
-void PRINT_NODE(Node* node,int level){
-    char* tab = malloc(sizeof(char)*level);
-    for(int i=0;i<level;i++){tab[i] = '\t';}
-    printf("%sNode:%d\t%s\t%s\n",tab,node->line,TYPE(node->type),VALUE(node->value,node->type));
-    for(int i =0;i<node->node_size;i++){
-        PRINT_NODE(node->nodes[i],level+1);
-    }
-  
 }
 void PRINT_TYPE(Type* type,int level){
     char* tab = malloc(sizeof(char)*level);
     for(int i=0;i<level;i++){tab[i] = '\t';}
     printf("%sType:%s\n",tab,TYPE(type->type));
     printf("%s\tPointer Size:%d\n",tab,type->pointer_size);
-    
+
 }
 char* VALUE(void* value,int type){
     if(type == EMPTY){return "EMPTY";}
     if(type == INTEGER || type == NEW_LINE || type == SEMICOLON || type == FUNCTION_START){return STRINGIFY(*(int*)value);}
+    if(!strcmp(value, "\n")){return "\\n";}
     return (char*)value;
 }
 char* TYPE(int type){
@@ -142,16 +144,12 @@ char* TYPE(int type){
         "ARRAY","ARGUMENT",
 
         "KEYWORD_START",
+            "PUBLIC","MODULE",
             "FUNCTION","ENUMERATOR","VARIABLE","STRUCTURE",
             "IF","ELIF",
             "WHILE","FOR",
             "RETURN","BREAK","CONTINUE",
         "KEYWORD_END",
-
-        "TYPE_START",
-            "I1","I8","I16","I32","I64",
-            "DOUBLE","FLOAT",
-        "TYPE_END",
 
         "MACRO_REPLACE",
 

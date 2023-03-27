@@ -1,54 +1,55 @@
 #include "include.h"
 typedef struct{
-    char* config_name,*name;
+    char *name;
     int type;
 }Keyword;
 
-#define KEYWORD_SIZE        17
+#define KEYWORD_SIZE        16
 static Keyword keywords[KEYWORD_SIZE]={
-    {"_function","fn",FUNCTION},
-    {"_enumeration","enum",ENUMERATOR},
-    {"_variable","var",VARIABLE},
-    {"_structure","struct",STRUCTURE},
-    {"_if","if",IF},
-    {"_else_if","elif",ELIF},
-    {"_while","while",WHILE},
-    {"_for","for",FOR},
-    {"_return","return",RETURN},
-    {"_break","break",BREAK},
-    {"_continue","continue",CONTINUE},
-    {"_i1","i1",I1},
-    {"_i8","i8",I8},
-    {"_i16","i16",I16},
-    {"_i32","i32",I32},
-    {"_i64","i64",I64},
-    {"_replace","replace",MACRO_REPLACE},
+    {"pub",PUBLIC},
+    {"fn",FUNCTION},
+    {"enum",ENUMERATOR},
+    {"var",VARIABLE},
+    {"struct",STRUCTURE},
+    {"if",IF},
+    {"elif",ELIF},
+    {"while",WHILE},
+    {"for",FOR},
+    {"return",RETURN},
+    {"break",BREAK},
+    {"continue",CONTINUE},
+    {"int",INTEGER},
+    {"string",STRING},
+    {"replace",MACRO_REPLACE},
+    {"module",MODULE},
 };
 
-#define SIDES_SIZE 22
+#define SIDES_SIZE 24
 static Keyword sides[SIDES_SIZE] = {
-    {"_add","+",PLUS},
-    {"_subtract","-",MINUS},
-    {"_multiply","*",STAR},
-    {"_divide","/",BACKSLASH},
-    {"_power","^",CARET},
-    {"_modulus","%",PERCENT},
-    {"_argument_start","(",ARGUMENT_START},
-    {"_argument_end",")",ARGUMENT_END},
-    {"_array_start","[",ARRAY_START},
-    {"_array_end","]",ARRAY_END},
-    {"_bind_start","{",FUNCTION_START},
-    {"_bind_end","}",FUNCTION_END},
-    {"_opposite","!",BANG},
-    {"_less_than","<",LT},
-    {"_greater_than",">",GT},
-    {"_less_equal_than","<=",LT_EQUAL},
-    {"_greater_equal_than",">=",GT_EQUAL},
-    {"_opposite_equal","!=",BANG_EQUAL},
-    {"_equal_equal","==",EQUAL_EQUAL},
-    {"_or","||",OR},
-    {"_and","&&",AND},
-    {"_skip","\\",SKIP},
+    {"+",PLUS},
+    {"-",MINUS},
+    {"*",STAR},
+    {"/",BACKSLASH},
+    {"^",CARET},
+    {"%",PERCENT},
+    {"(",ARGUMENT_START},
+    {")",ARGUMENT_END},
+    {"[",ARRAY_START},
+    {"]",ARRAY_END},
+    {"{",FUNCTION_START},
+    {"}",FUNCTION_END},
+    {"!",BANG},
+    {"<",LT},
+    {">",GT},
+    {"<=",LT_EQUAL},
+    {">=",GT_EQUAL},
+    {"!=",BANG_EQUAL},
+    {"==",EQUAL_EQUAL},
+    {"||",OR},
+    {"&&",AND},
+    {"\\",SKIP},
+    {",",COMMA},
+    {";",SEMICOLON},
 };
 
 #define SEQUENCES_SIZE 5
@@ -88,6 +89,31 @@ static int compare_keywords(const void* a, const void* b){
     return strlen(b1->name)-strlen(a1->name);
 }
 
+static Token* loop_tokens(Token** tokens,size_t size,int index,char* scope,int left,int right,int *return_index){
+    Token* token = malloc(sizeof(Token));
+    Token** hold = malloc(sizeof(Token*));
+    size_t hold_size = 0;
+    int count = 1;
+    int line = tokens[index]->line;
+    index++;
+    for(;index<(int)size;index++){
+        Token* current_token = tokens[index];
+        if(current_token->type==left){count++;free(current_token);}
+        else if(current_token->type==right){count--;free(current_token);}
+        if(!count){break;}
+        hold = realloc(hold,sizeof(Token*)*(hold_size+1));
+        hold[hold_size++] = current_token;
+    }
+    ERROR(count != 0,line,(char*[]){"Unmatched \"",TYPE(right),"\"",NULL},__func__,scope);
+    size_t hold_return_size = 0;
+    Token** hold_tokens = format(hold,scope,hold_size,&hold_return_size);
+    token->value = realloc(token->value,sizeof(Token*)*(hold_return_size));
+    token->value = hold_tokens;
+    token->size = hold_return_size;
+    *return_index = index;
+    return token;
+}
+
 static void lexer_integer(Lexer* lexer){
     lexer->token->type = INTEGER;
     int value = 0;
@@ -120,7 +146,7 @@ static void lexer_sequence(Lexer* lexer,char* end,int type){
     char* replace_sequences = "\"\'nrt0";
     char *result = malloc(sizeof(char));
     int len = 0, end_len = strlen(end),found =0;
-    
+
     lexer_advance(lexer);
     while(lexer->index < lexer->text_size){
         char* peek = lexer_long_peek(lexer,end_len);
@@ -150,7 +176,7 @@ static void lexer_sequence(Lexer* lexer,char* end,int type){
     result[len] = '\0';
     lexer->token->value = result;
     ERROR(!found,lexer->token->line, (char*[]){"Unmatched ",end,NULL},__func__,lexer->current_file);
-    
+
 }
 static void lexer_keyword(Lexer* lexer){
     char *result = malloc(sizeof(char));
@@ -197,12 +223,43 @@ static void lexer_sign(Lexer* lexer){
     ERROR(1,lexer->token->line, (char*[]){"Unexpected character ",STRINGIFY_CHAR(lexer->current_char),NULL},__func__,lexer->current_file);
 }
 
+Token** format(Token** tokens, char* scope, size_t size,size_t* return_size){
+    Token** new_tokens = malloc(sizeof(Token*));
+    size_t token_size = 0;
+    int index =0;
+    while(index<(int)size){
+        Token* current_token = tokens[index];
+        new_tokens = realloc(new_tokens,sizeof(Token*)*(token_size+1));
+        switch(current_token->type){
+            case ARGUMENT_START:{
+                Token* token = loop_tokens(tokens,size,index,scope,ARGUMENT_START,ARGUMENT_END,&index);
+                token->type = ARGUMENT;
+                token->line = current_token->line;
+                new_tokens[token_size++] = token;
+                break;
+            }
+            case ARRAY_START:{
+                Token* token = loop_tokens(tokens,size,index,scope,ARRAY_START,ARRAY_END,&index);
+                token->line = current_token->line;
+                token->type = ARRAY;
+                new_tokens[token_size++] = token;
+                break;
+            }
+            default:{
+                new_tokens[token_size++] = current_token;
+                break;
+            }
+        }
+        index++;
+    }
+    *return_size = token_size;
+    return new_tokens;
+}
 void lex(Lexer* lexer){
     lexer_advance(lexer);
     while(lexer->index <= lexer->text_size){
         lexer->token = malloc(sizeof(Token));
         lexer->token->line = lexer->line;
-        lexer->token->column = lexer->column;
         if(lexer->current_char == ' '){lexer_advance(lexer);continue;}
         if(lexer->current_char == '\n'){
             lexer->spacing=0;
@@ -241,8 +298,9 @@ void lex(Lexer* lexer){
             lexer->last_type = lexer->token->type;
     }
     ERROR(lexer->last_type != NEW_LINE,lexer->line,(char *[]){"End of file should end with a new line",NULL},__func__,lexer->current_file);
-}   
-Lexer* new_lexer(Config* config){
+    lexer->tokens = format(lexer->tokens,lexer->current_file,lexer->token_size,&lexer->token_size);
+}
+Lexer* new_lexer(char* path){
     Lexer* lexer = malloc(sizeof(Lexer));
     lexer->token = malloc(sizeof(Token));
     lexer->tokens = malloc(sizeof(Token*));
@@ -255,8 +313,8 @@ Lexer* new_lexer(Config* config){
     lexer->last_type = EMPTY;
     qsort(keywords, KEYWORD_SIZE, sizeof(Keyword), compare_keywords);
     qsort(sides,SIDES_SIZE, sizeof(Keyword), compare_keywords);
-    lexer->text = read_file(config->input_file);
+    lexer->text = read_file(path);
     lexer->text_size = strlen(lexer->text);
-    lexer->current_file = config->input_file;
+    lexer->current_file = path;
     return lexer;
 }
