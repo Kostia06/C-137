@@ -153,10 +153,8 @@ static void lexer_sequence(Lexer* lexer,char* end,int type){
         if(!strcmp(peek,end)){
             for(int i=0;i<end_len;i++){lexer_advance(lexer);}
             found = 1;
-            free(peek);
             break;
         }
-        free(peek);
         result = realloc(result, sizeof(char) * (len + 1));
         result[len++] = lexer->current_char;
         lexer_advance(lexer);
@@ -211,7 +209,7 @@ static void lexer_sign(Lexer* lexer){
     char* long_peek;
     for(int i=0;i<SIDES_SIZE;i++){
         int len = strlen(sides[i].name);
-        if(long_peek_len!=len){free(long_peek);long_peek = lexer_long_peek(lexer, len);}
+        if(long_peek_len!=len){long_peek = lexer_long_peek(lexer, len);}
         if(!strncmp(long_peek, sides[i].name, len)){
             lexer->token->type = sides[i].type;
             lexer->token->value = malloc(sizeof(char)*len);
@@ -264,7 +262,7 @@ void lex(Lexer* lexer){
         if(lexer->current_char == '\n'){
             lexer->spacing=0;
             lexer_advance(lexer);
-            while(lexer->current_char == ' '){lexer->spacing++;lexer_advance(lexer);}
+            while(lexer->current_char == ' ' && lexer->index <= lexer->text_size){lexer->spacing++;lexer_advance(lexer);}
             if(lexer->last_type == NEW_LINE){
                 *(int*)lexer->tokens[lexer->token_size-1]->value = lexer->spacing;
                 continue;
@@ -278,7 +276,6 @@ void lex(Lexer* lexer){
         for(int i=0;i<SEQUENCES_SIZE;i++){
             char* peek = lexer_long_peek(lexer, strlen(sequence_start[i]));
             if(!strcmp(peek, sequence_start[i])){
-                free(peek);
                 lexer_sequence(lexer,sequence_end[i],sequence_type[i]);
                 goto add_token;
             }
@@ -292,7 +289,7 @@ void lex(Lexer* lexer){
         }
         goto add_token;
         add_token:
-            if(lexer->token->type == EMPTY){continue;}
+            if(lexer->token->type == EMPTY){free(lexer->token);continue;}
             lexer->tokens = realloc(lexer->tokens, sizeof(Token*) * (lexer->token_size + 1));
             lexer->tokens[lexer->token_size++] = lexer->token;
             lexer->last_type = lexer->token->type;

@@ -3,7 +3,7 @@
 
 #include "../utils/include.h"
 
-// void vm(NodeBlock** blocks, size_t size);
+void vm(TokenBlock** blocks, size_t size);
 
 
 

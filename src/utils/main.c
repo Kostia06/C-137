@@ -1,5 +1,9 @@
 #include "include.h"
 
+#define SHOW_ERROR_FUNCTION 1
+
+static int loop_count = 0;
+
 static char* get_file_from_scope(char* scope){
     int i = 0;
     return SPLIT(scope,"!~!",&i)[0];
@@ -12,7 +16,6 @@ static char* multiply_string(char* str,int times){
     }
     return new_str;
 }
-static int loop_count = 0;
 void ERROR_LOOP(int max){
     if(loop_count++ > max){
         printf("%sERROR%s[%s%d%s][%s%s%s][%s%s%s]\n",RED,WHITE,MAGENTA,0,WHITE,MAGENTA,"LOOP",WHITE,MAGENTA,"LOOP",WHITE);
@@ -38,7 +41,10 @@ void ERROR(int condition,int line,char **message,const char* fun,char* scope){
         printf("%sERROR",RED);
         printf("%s[%s%d%s]",WHITE,MAGENTA,line,WHITE);
         printf("%s[%s%s%s]",WHITE,MAGENTA,scope,WHITE);
-        printf("%s[%s%s%s]\n",WHITE,MAGENTA,fun,WHITE);
+        #if SHOW_ERROR_FUNCTION == 1
+            printf("%s[%s%s%s]",WHITE,MAGENTA,fun,WHITE);
+        #endif
+        printf("\n");
         for(int i=0;i<line_size;i++){
             printf("%s|%d\t%s%s%s\n",CYAN,start_line++,WHITE,lines[i],RESET);
             if(i==index){
