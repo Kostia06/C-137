@@ -28,15 +28,18 @@ typedef enum{
     EMPTY,INTEGER,STRING,
     IDENTIFIER,
     ARRAY,ARGUMENT,
-
-    KEYWORD_START,
+    
+    ACTION_START,
         PUBLIC,MODULE,
-        FUNCTION,ENUMERATOR,VARIABLE,STRUCTURE,
+        FUNCTION,VARIABLE,
         IF,ELIF,
-        WHILE,FOR,
+        PUSH,
+        LOOP,
         RETURN,BREAK,CONTINUE,
-    KEYWORD_END,
-
+        PLUS,MINUS,    
+        MULTIPLY,DIVIDE,
+    ACTION_END,
+    POP,
     MACRO_REPLACE,
 
     ARGUMENT_START,ARGUMENT_END,
@@ -51,26 +54,16 @@ typedef enum{
     SKIP,
     NEW_LINE,SEMICOLON, // \n ;
 
-    ACTION_START,
-        PLUS, MINUS, // + -
-        STAR, BACKSLASH, // * /
-        CARET, PERCENT, // ^ %
-    ACTION_END,
-
     END,
 } Types;
-typedef struct TokenBlockStruct TokenBlock;
-typedef struct{
-    int type;
-    int pointer_size;
-}Type;
+typedef struct TokenStruct Token;
 typedef struct{
     int return_type,* arguments;
     int found;
     size_t size;
 } Function;
 typedef struct {
-    Type* type;
+    int type;
     void* value;
 } HashEntry;
 typedef struct{
@@ -82,8 +75,9 @@ typedef struct{
     int size,ids[MAX_HASH_SIZE];
     HashScope* entries[MAX_HASH_SIZE];
 } HashTable;
-typedef struct{
+typedef struct TokenStruct{
     void* value;
+    Token** children;
     size_t size;
     int type,line;
 }Token;
@@ -95,26 +89,14 @@ typedef struct{
     size_t token_size,index,text_size,spacing;
     size_t line,column;
 }Lexer;
-typedef struct TokenBlockStruct{
-    Token** tokens;
-    size_t token_size;
-    TokenBlock** blocks;
-    size_t block_size;
-    int type,spacing;
-    int line, index;
-    char* scope;
-}TokenBlock;
 
 void ERROR_LOOP(int max);
 void ERROR(int condition,int line,char **message,const char* fun,char* scope);
 char* SINGLE_STRING(char**array);
 char* STRINGIFY(int value);
-char* STRINGIFY_CHAR(char value);
 char* LOWER(char* string);
 char** SPLIT(char* string,char* split,int* return_size);
 void PRINT_TOKEN(Token* token,int level);
-void PRINT_BLOCK(TokenBlock* block,int level);
-void PRINT_TYPE(Type* type,int level);
 char* VALUE(void* value,int type);
 char* TYPE(int type);
 

@@ -4,17 +4,16 @@ typedef struct{
     int type;
 }Keyword;
 
-#define KEYWORD_SIZE        16
+#define KEYWORD_SIZE        15
 static Keyword keywords[KEYWORD_SIZE]={
     {"pub",PUBLIC},
     {"fn",FUNCTION},
-    {"enum",ENUMERATOR},
     {"var",VARIABLE},
-    {"struct",STRUCTURE},
     {"if",IF},
     {"elif",ELIF},
-    {"while",WHILE},
-    {"for",FOR},
+    {"loop",LOOP},
+    {"push",PUSH},
+    {"pop",POP},
     {"return",RETURN},
     {"break",BREAK},
     {"continue",CONTINUE},
@@ -24,14 +23,12 @@ static Keyword keywords[KEYWORD_SIZE]={
     {"module",MODULE},
 };
 
-#define SIDES_SIZE 24
+#define SIDES_SIZE 22
 static Keyword sides[SIDES_SIZE] = {
     {"+",PLUS},
     {"-",MINUS},
-    {"*",STAR},
-    {"/",BACKSLASH},
-    {"^",CARET},
-    {"%",PERCENT},
+    {"*",MULTIPLY},
+    {"/",DIVIDE},
     {"(",ARGUMENT_START},
     {")",ARGUMENT_END},
     {"[",ARRAY_START},
@@ -107,8 +104,8 @@ static Token* loop_tokens(Token** tokens,size_t size,int index,char* scope,int l
     ERROR(count != 0,line,(char*[]){"Unmatched \"",TYPE(right),"\"",NULL},__func__,scope);
     size_t hold_return_size = 0;
     Token** hold_tokens = format(hold,scope,hold_size,&hold_return_size);
-    token->value = realloc(token->value,sizeof(Token*)*(hold_return_size));
-    token->value = hold_tokens;
+    token->children = realloc(token->value,sizeof(Token*)*(hold_return_size));
+    token->children = hold_tokens;
     token->size = hold_return_size;
     *return_index = index;
     return token;
@@ -218,7 +215,10 @@ static void lexer_sign(Lexer* lexer){
             return;
         }
     }
-    ERROR(1,lexer->token->line, (char*[]){"Unexpected character ",STRINGIFY_CHAR(lexer->current_char),NULL},__func__,lexer->current_file);
+    char* chr = malloc(sizeof(char)*2);
+    chr[0] = lexer->current_char;
+    chr[1] = '\0';
+    ERROR(1,lexer->token->line, (char*[]){"Unexpected character ",chr,NULL},__func__,lexer->current_file);
 }
 
 Token** format(Token** tokens, char* scope, size_t size,size_t* return_size){

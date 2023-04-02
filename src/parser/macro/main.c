@@ -4,6 +4,15 @@ typedef struct{
     Token** tokens;
 }Replace;
 
+
+
+static Token* cp_token(Token* token){
+    Token* new_token = malloc(sizeof(Token));
+    new_token->type = token->type;
+    new_token->value = token->value;
+    new_token->line = token->line;
+    return new_token;
+}
 static Token** add_token_to_array(Token** array,Token* value,int size,int index){
     Token** new_array = malloc(sizeof(Token*)*(size+1));
     for(int i = 0;i < size+1;i++){
@@ -43,8 +52,8 @@ Token** create_macro(Token** tokens,size_t size,char* scope,size_t* return_size)
             if(replace[id]!=NULL){
                 Replace* replace_token = replace[id];
                 for(int i=0;i<(int)replace_token->size;i++){
-
-                    Token* token = replace_token->tokens[i];
+                    Token* token = cp_token(replace_token->tokens[i]);
+                    token->line = line;
                     tokens = add_token_to_array(tokens,token,size,index+1+i);
                     size++;
                 }

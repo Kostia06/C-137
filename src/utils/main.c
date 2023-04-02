@@ -75,11 +75,6 @@ char* STRINGIFY(int value){
     sprintf(str,"%d",value);
     return str;
 }
-char* STRINGIFY_CHAR(char value){
-    char* str = malloc(sizeof(char));
-    sprintf(str,"%c",value);
-    return str;
-}
 char* LOWER(char* string){
     char* str = malloc(sizeof(char)*(strlen(string)+1));
     strcpy(str,string);
@@ -110,37 +105,20 @@ void PRINT_TOKEN(Token* token,int level){
     char* tab = malloc(sizeof(char)*level);
     for(int i=0;i<level;i++){tab[i] = '\t';}
     printf("%sToken:%d:%s",tab,token->line,TYPE(token->type));
-    if(token->type == ARGUMENT || token->type == ARRAY){
-        printf("\n");
-        Token** tokens = token->value;
-        for(int i=0;tokens[i]!=NULL;i++){
-            PRINT_TOKEN(tokens[i],level+1);
-        }
+    if(token->type != ARGUMENT && token->type != EMPTY && token->type != ARRAY){
+        printf("%s\tValue:%s",tab,VALUE(token->value,token->type));
     }
-    else{printf(":%s;\n",VALUE(token->value,token->type));}
-}
-void PRINT_BLOCK(TokenBlock* block,int level){
-    char* tab = malloc(sizeof(char)*level);
-    for(int i=0;i<level;i++){tab[i] = '\t';}
-    printf("%s%d:Block\t%s\t%s\tsize:%zu\tline:%d\tspacing:%d\n",tab,block->index,TYPE(block->type),block->scope,block->token_size,block->line,block->spacing);
-    for(int i=0;i<(int)block->block_size;i++){
-        PRINT_BLOCK(block->blocks[i],level+1);
-    }
-    for(int i=0;i<(int)(block->token_size);i++){
-        PRINT_TOKEN(block->tokens[i],level+1);
+    printf("\n");
+    for(int i=0;i<token->size;i++){
+        PRINT_TOKEN(token->children[i],level+1);
     }
 }
-void PRINT_TYPE(Type* type,int level){
-    char* tab = malloc(sizeof(char)*level);
-    for(int i=0;i<level;i++){tab[i] = '\t';}
-    printf("%sType:%s\n",tab,TYPE(type->type));
-    printf("%s\tPointer Size:%d\n",tab,type->pointer_size);
 
-}
 char* VALUE(void* value,int type){
     if(type == EMPTY){return "EMPTY";}
     if(type == INTEGER || type == NEW_LINE || type == SEMICOLON || type == FUNCTION_START){return STRINGIFY(*(int*)value);}
     if(!strcmp(value, "\n")){return "\\n";}
+    if(type >= ACTION_START && type <= ACTION_END){return STRINGIFY(*(int*)value);}
     return (char*)value;
 }
 char* TYPE(int type){
@@ -149,14 +127,17 @@ char* TYPE(int type){
         "IDENTIFIER",
         "ARRAY","ARGUMENT",
 
-        "KEYWORD_START",
+        "ACTION_START",
             "PUBLIC","MODULE",
-            "FUNCTION","ENUMERATOR","VARIABLE","STRUCTURE",
+            "FUNCTION","VARIABLE",
             "IF","ELIF",
-            "WHILE","FOR",
+            "PUSH",
+            "LOOP",
             "RETURN","BREAK","CONTINUE",
-        "KEYWORD_END",
-
+            "PLUS","MINUS",
+            "MULTIPLY","DIVIDE",
+        "ACTION_END",
+        "POP",
         "MACRO_REPLACE",
 
         "ARGUMENT_START","ARGUMENT_END",
@@ -164,18 +145,12 @@ char* TYPE(int type){
         "ARRAY_START","ARRAY_END",
         "COMMA", // ,
         "BANG", //!
-        "LT", "GT", // < >
+       "LT", "GT", // < >
         "LT_EQUAL", "GT_EQUAL", // <= >=
         "BANG_EQUAL", "EQUAL_EQUAL", // != ==
         "OR", "AND", // || &&
         "SKIP",
         "NEW_LINE","SEMICOLON", // \n ;
-
-        "ACTION_START",
-            "PLUS", "MINUS", // + -
-            "STAR", "BACKSLASH", // * /
-            "CARET", "PERCENT", // ^ %
-        "ACTION_END",
 
         "END",
     }[type];
