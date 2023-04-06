@@ -51,7 +51,7 @@ void ERROR(int condition,int line,char **message,const char* fun,char* scope){
                 int current_line_length = strlen(lines[i]);
                 printf("%s",RED);
                 printf("\t%s\n",multiply_string("^",current_line_length));
-                printf("\t%s\n",msg);
+                printf("\t%s\n%s",msg,RESET);
             }
         }
     }
@@ -113,6 +113,17 @@ void PRINT_TOKEN(Token* token,int level){
         PRINT_TOKEN(token->children[i],level+1);
     }
 }
+void PRINT_BYTECODE(Bytecode* bytecode,int level){
+    char* tab = malloc(sizeof(char)*level);
+    for(int i=0;i<level;i++){tab[i] = '\t';}
+    printf("%sBytecode:%s\n",tab,TYPE(bytecode->type));
+    for(int i=0;i<bytecode->value_size;i++){
+        PRINT_BYTECODE(bytecode->values[i],level+1);
+    }
+    for(int i=0;i<bytecode->children_size;i++){
+        PRINT_BYTECODE(bytecode->children[i],level+1);
+    }
+}
 
 char* VALUE(void* value,int type){
     if(type == EMPTY){return "EMPTY";}
@@ -123,7 +134,7 @@ char* VALUE(void* value,int type){
 }
 char* TYPE(int type){
     return (char*[]){
-        "EMPTY","INTEGER","STRING",
+        "EMPTY","INTEGER","STRING","SYMBOL",
         "IDENTIFIER",
         "ARRAY","ARGUMENT",
 
@@ -131,24 +142,22 @@ char* TYPE(int type){
             "PUBLIC","MODULE",
             "FUNCTION","VARIABLE",
             "IF","ELIF",
-            "PUSH",
+            "PUSH","PUT",
             "LOOP",
-            "RETURN","BREAK","CONTINUE",
+            "BREAK","CONTINUE",
             "PLUS","MINUS",
             "MULTIPLY","DIVIDE",
+            "EQUAL_EQUAL", "BANG_EQUAL", // == !=
+            "LT", "GT", // < >
+            "OR", "AND", // || &&
+            "MACRO_REPLACE",
         "ACTION_END",
         "POP",
-        "MACRO_REPLACE",
 
         "ARGUMENT_START","ARGUMENT_END",
         "FUNCTION_START","FUNCTION_END",
         "ARRAY_START","ARRAY_END",
         "COMMA", // ,
-        "BANG", //!
-       "LT", "GT", // < >
-        "LT_EQUAL", "GT_EQUAL", // <= >=
-        "BANG_EQUAL", "EQUAL_EQUAL", // != ==
-        "OR", "AND", // || &&
         "SKIP",
         "NEW_LINE","SEMICOLON", // \n ;
 

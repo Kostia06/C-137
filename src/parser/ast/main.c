@@ -43,6 +43,8 @@ Token** level_ast(Token** tokens, size_t size, char* scope, size_t* return_size)
                 }
                 ERROR(hold_size == 0,token->line,(char*[]){"No body",NULL},__func__,scope);
                 hold = level_ast(hold,hold_size,scope,&hold_size);
+                token->children = realloc(token->children,sizeof(Token*)*(token->size+1));
+                token->children[token->size++] = malloc(sizeof(Token));
                 for(int j=0;j<(int)hold_size;j++){
                     token->children = realloc(token->children,sizeof(Token*)*(token->size+1));
                     token->children[token->size++] = hold[j];
@@ -65,8 +67,8 @@ Token** ast(Token** tokens, size_t size, char* scope,size_t* return_size){
     int i = 0, type = EMPTY, next_spacing = 0;  
     while(i<size){
         Token* token = tokens[i++];
-        if(token->type == NEW_LINE || token->type == SEMICOLON || (i<size && tokens[i]->type == FUNCTION_START)){
-            if(hold->size == 0){continue;}
+        if(token->type == NEW_LINE || token->type == SEMICOLON || token->type == FUNCTION_START){
+            if(hold->size==0 && type == EMPTY){continue;}
             ERROR(type == EMPTY,token->line,(char*[]){"No parser type",NULL},__func__,scope);
             *(int*)hold->value = next_spacing;
             hold->type = type;
@@ -77,8 +79,8 @@ Token** ast(Token** tokens, size_t size, char* scope,size_t* return_size){
 
             hold = new_ast();
             type = EMPTY;
-            next_spacing = (i<size && tokens[i]->type == FUNCTION_START) ? *(int*)tokens[i]->value:*(int*)token->value;
-            continue;
+            next_spacing = token->type == FUNCTION_START ? *(int*)tokens[i]->value:*(int*)token->value;
+            if(token->type != FUNCTION_START){continue;}
         }
         if(token->type == FUNCTION_START || token->type == FUNCTION_END){
             ast->children = realloc(ast->children,sizeof(Token*)*(ast->size+1));

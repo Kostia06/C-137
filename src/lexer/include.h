@@ -7,7 +7,7 @@
 
 void lex(Lexer* lexer);
 Token** format(Token** tokens, char* scope, size_t size,size_t* return_size);
-Lexer* new_lexer(char* path);
+Lexer* new_lexer(CompilerOptions* options);
 
 
 #endif

@@ -1,10 +1,17 @@
 #include "include.h"
+
+typedef struct{
+    size_t size;
+    Token** tokens;
+}Replace;
 typedef struct{
     char *name;
     int type;
 }Keyword;
 
-#define KEYWORD_SIZE        15
+Replace* replaces[MAX_HASH_SIZE];
+
+#define KEYWORD_SIZE        13
 static Keyword keywords[KEYWORD_SIZE]={
     {"pub",PUBLIC},
     {"fn",FUNCTION},
@@ -13,17 +20,15 @@ static Keyword keywords[KEYWORD_SIZE]={
     {"elif",ELIF},
     {"loop",LOOP},
     {"push",PUSH},
+    {"put",PUT},
     {"pop",POP},
-    {"return",RETURN},
     {"break",BREAK},
     {"continue",CONTINUE},
-    {"int",INTEGER},
-    {"string",STRING},
     {"replace",MACRO_REPLACE},
     {"module",MODULE},
 };
 
-#define SIDES_SIZE 22
+#define SIDES_SIZE 19
 static Keyword sides[SIDES_SIZE] = {
     {"+",PLUS},
     {"-",MINUS},
@@ -35,11 +40,8 @@ static Keyword sides[SIDES_SIZE] = {
     {"]",ARRAY_END},
     {"{",FUNCTION_START},
     {"}",FUNCTION_END},
-    {"!",BANG},
     {"<",LT},
     {">",GT},
-    {"<=",LT_EQUAL},
-    {">=",GT_EQUAL},
     {"!=",BANG_EQUAL},
     {"==",EQUAL_EQUAL},
     {"||",OR},
@@ -49,15 +51,27 @@ static Keyword sides[SIDES_SIZE] = {
     {";",SEMICOLON},
 };
 
-#define SEQUENCES_SIZE 5
-static char* sequence_start[SEQUENCES_SIZE] = {"\"","'","`","/*","//"};
-static char* sequence_end[SEQUENCES_SIZE] = {"\"","'","`","*/","\n"};
-static int sequence_type[SEQUENCES_SIZE] = {STRING,STRING,STRING,EMPTY,EMPTY};
 
+#define SEQUENCES_SIZE 4
+static char sequence_start[SEQUENCES_SIZE] = {'\"','\'','`','~'};
+static char sequence_end[SEQUENCES_SIZE] = {'\"','\'','`','\n'};
+static int sequence_type[SEQUENCES_SIZE] = {STRING,STRING,STRING,EMPTY};
+
+static int is_whitespace(char c){return c == ' ' || c == '\n';}
+static int is_string(char c){return c == '\"' || c == '\'' || c == '`' || c == '~';}
 static int is_digit(char c){return (c >= '0' && c <= '9');}
-static int is_string(char c){return c == '\"' || c == '\''|| c == '`';}
 static int is_alpha(char c){return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');}
 static int is_alphanumeric(char c){return is_digit(c) || is_alpha(c) || c=='_';}
+static int is_symbol(char c){return !is_alphanumeric(c) && !is_string(c) && !is_digit(c) && !is_whitespace(c);}
+
+static Token* new_parent(){
+    Token* token = malloc(sizeof(Token));
+    int* value = malloc(sizeof(int));
+    *value = 0;
+    token->value = value;
+    token->size = 0;
+    return token;
+}
 
 static void lexer_advance(Lexer* lexer){
     lexer->current_char = lexer->text[lexer->index++];
@@ -71,54 +85,25 @@ static char lexer_peek(Lexer* lexer){
     if(lexer->index >= lexer->text_size){return '\0';}
     return lexer->text[lexer->index];
 }
-static char* lexer_long_peek(Lexer* lexer,int length){
-    char* result = malloc(sizeof(char)*length);
-    for(int i=0;i<length;i++){
-        if(lexer->index-1+i >= lexer->text_size){result[i] = '\0';}
-        else{result[i] = lexer->text[lexer->index-1+i];}
+
+static void lexer_replace(Lexer* lexer){
+    Token* token = lexer->hold;
+    ERROR(token->size < 2,token->line,(char*[]){"Macro replace must have at least 2 tokens",NULL},__func__,lexer->current_file);
+    Token* name = token->children[0];
+    ERROR(name->type != IDENTIFIER && name->type != SYMBOL,name->line,(char*[]){"Macro replace name must be an identifier or symbol",NULL},__func__,lexer->current_file);
+    int id = hash_id((char*)name->value);
+    Replace* replace = malloc(sizeof(Replace));
+    for(int i=1;i<token->size;i++){
+        replace->tokens = realloc(replace->tokens,sizeof(Token*)*(replace->size+1));
+        replace->tokens[replace->size++] = token->children[i];
     }
-    return result;
+    replaces[id] = replace;
 }
-
-static int compare_keywords(const void* a, const void* b){
-    Keyword* a1 = (Keyword*)a;
-    Keyword* b1 = (Keyword*)b;
-    return strlen(b1->name)-strlen(a1->name);
-}
-
-static Token* loop_tokens(Token** tokens,size_t size,int index,char* scope,int left,int right,int *return_index){
-    Token* token = malloc(sizeof(Token));
-    Token** hold = malloc(sizeof(Token*));
-    size_t hold_size = 0;
-    int count = 1;
-    int line = tokens[index]->line;
-    index++;
-    for(;index<(int)size;index++){
-        Token* current_token = tokens[index];
-        if(current_token->type==left){count++;free(current_token);}
-        else if(current_token->type==right){count--;free(current_token);}
-        if(!count){break;}
-        hold = realloc(hold,sizeof(Token*)*(hold_size+1));
-        hold[hold_size++] = current_token;
-    }
-    ERROR(count != 0,line,(char*[]){"Unmatched \"",TYPE(right),"\"",NULL},__func__,scope);
-    size_t hold_return_size = 0;
-    Token** hold_tokens = format(hold,scope,hold_size,&hold_return_size);
-    token->children = realloc(token->value,sizeof(Token*)*(hold_return_size));
-    token->children = hold_tokens;
-    token->size = hold_return_size;
-    *return_index = index;
-    return token;
-}
-
 static void lexer_integer(Lexer* lexer){
     lexer->token->type = INTEGER;
     int value = 0;
     while(is_digit(lexer->current_char) || lexer->current_char == '_' || lexer->current_char == '.'){
-        if(lexer->current_char == '_'){
-            lexer_advance(lexer);
-            continue;
-        }
+        if(lexer->current_char == '_'){lexer_advance(lexer);continue;}
         if(lexer->current_char == '.'){
             if(!is_digit(lexer_peek(lexer))){break;}
             lexer_advance(lexer);
@@ -138,18 +123,16 @@ static void lexer_integer(Lexer* lexer){
     lexer->token->value = malloc(sizeof(int));
     *(int*)lexer->token->value = value;
 }
-static void lexer_sequence(Lexer* lexer,char* end,int type){
+static void lexer_sequence(Lexer* lexer,char end,int type){
     lexer->token->type = type;
     char* replace_sequences = "\"\'nrt0";
     char *result = malloc(sizeof(char));
-    int len = 0, end_len = strlen(end),found =0;
-
+    int len=0,found =0;
     lexer_advance(lexer);
     while(lexer->index < lexer->text_size){
-        char* peek = lexer_long_peek(lexer,end_len);
-        if(!strcmp(peek,end)){
-            for(int i=0;i<end_len;i++){lexer_advance(lexer);}
+        if(lexer->current_char == end){
             found = 1;
+            lexer_advance(lexer);
             break;
         }
         result = realloc(result, sizeof(char) * (len + 1));
@@ -170,7 +153,10 @@ static void lexer_sequence(Lexer* lexer,char* end,int type){
     result = realloc(result, sizeof(char) * (len + 1));
     result[len] = '\0';
     lexer->token->value = result;
-    ERROR(!found,lexer->token->line, (char*[]){"Unmatched ",end,NULL},__func__,lexer->current_file);
+    char* error = malloc(sizeof(char)*2);
+    error[0] = end;
+    error[1] = '\0';
+    ERROR(!found,lexer->token->line, (char*[]){"Unmatched ",error,NULL},__func__,lexer->current_file);
 
 }
 static void lexer_keyword(Lexer* lexer){
@@ -186,96 +172,105 @@ static void lexer_keyword(Lexer* lexer){
     lexer->token->value = result;
     for(int i=0;i<KEYWORD_SIZE;i++){
         if(!strcmp(result, keywords[i].name)){
-            lexer->token->type = keywords[i].type;return;
-        }
-    }
-    lexer->token->type = IDENTIFIER;
-}
-static void lexer_comment(Lexer* lexer){
-    if(lexer_peek(lexer) == '/'){
-        while(lexer->current_char != '\n'){lexer_advance(lexer);}
-    }
-    else if(lexer_peek(lexer)=='*'){
-        while(lexer->index <= lexer->text_size && (lexer->current_char != '*' || lexer_peek(lexer) != '/')){lexer_advance(lexer);}
-        lexer_advance(lexer);
-        lexer_advance(lexer);
-    }
-}
-static void lexer_sign(Lexer* lexer){
-    int long_peek_len = 0;
-    char* long_peek;
-    for(int i=0;i<SIDES_SIZE;i++){
-        int len = strlen(sides[i].name);
-        if(long_peek_len!=len){long_peek = lexer_long_peek(lexer, len);}
-        if(!strncmp(long_peek, sides[i].name, len)){
-            lexer->token->type = sides[i].type;
-            lexer->token->value = malloc(sizeof(char)*len);
-            lexer->token->value = sides[i].name;
-            for(int j=0;j<len;j++){lexer_advance(lexer);}
+            int type = keywords[i].type;
+            lexer->token->type = type;
+            if(lexer->hold->type != MACRO_REPLACE && type >= ACTION_START && type <= ACTION_END){
+                ERROR(lexer->hold->type != EMPTY,lexer->token->line, (char*[]){"Unexpected action",NULL},__func__,lexer->current_file);
+                lexer->hold->type = type;
+                lexer->hold->line = lexer->token->line;
+                lexer->token->type = EMPTY;
+            }
             return;
         }
     }
-    char* chr = malloc(sizeof(char)*2);
-    chr[0] = lexer->current_char;
-    chr[1] = '\0';
-    ERROR(1,lexer->token->line, (char*[]){"Unexpected character ",chr,NULL},__func__,lexer->current_file);
+    lexer->token->type = IDENTIFIER;
+    if(lexer->options->macro == 0){return;}
+    int id = hash_id(result);
+    int line = lexer->token->line;
+    Replace* replace_token = replaces[id];
+    if(replace_token==NULL){return;}
+    for(int i=0;i<(int)replace_token->size;i++){
+        Token* token = malloc(sizeof(Token));
+        token->type = replace_token->tokens[i]->type;   
+        token->value = replace_token->tokens[i]->value; 
+        token->line = line;
+        lexer->hold->children = realloc(lexer->hold->children, sizeof(Token*) * (lexer->hold->size + 1));
+        lexer->hold->children[lexer->hold->size++] = token;
+        if(token->type >= ACTION_START && token->type <= ACTION_END){
+            ERROR(lexer->hold->type != EMPTY,lexer->token->line, (char*[]){"Unexpected action",NULL},__func__,lexer->current_file);    
+            lexer->hold->type = token->type;
+        }
+        lexer->last_type= token->type;
+    }
+    lexer->token->type = EMPTY;
+}
+static void lexer_sign(Lexer* lexer){
+    char *result = malloc(sizeof(char));
+    int len = 0;
+    while (is_symbol(lexer->current_char)){
+        result = realloc(result, sizeof(char) * (len + 1));
+        result[len++] = lexer->current_char;
+        lexer_advance(lexer);
+    }
+    result = realloc(result, sizeof(char) * (len + 1));
+    result[len] = '\0';
+    lexer->token->value = result;
+    for(int i=0;i<SIDES_SIZE;i++){
+        if(!strcmp(result, sides[i].name)){
+            lexer->token->type = sides[i].type;return;
+        }
+    }
+    lexer->token->type = SYMBOL;
+    if(lexer->options->macro == 0){return;}
+    int id = hash_id(result);
+    int line = lexer->token->line;
+    Replace* replace_token = replaces[id];
+    if(replace_token==NULL){return;}
+    for(int i=0;i<(int)replace_token->size;i++){
+        Token* token = malloc(sizeof(Token));
+        token->type = replace_token->tokens[i]->type;   
+        token->value = replace_token->tokens[i]->value; 
+        token->line = line;
+        lexer->hold->children = realloc(lexer->hold->children, sizeof(Token*) * (lexer->hold->size + 1));
+        lexer->hold->children[lexer->hold->size++] = token;
+        if(token->type >= ACTION_START && token->type <= ACTION_END){
+            ERROR(lexer->hold->type != EMPTY,lexer->token->line, (char*[]){"Unexpected action",NULL},__func__,lexer->current_file);    
+            lexer->hold->type = token->type;
+        }
+        lexer->last_type= token->type;
+    }
+    lexer->token->type = EMPTY;
 }
 
-Token** format(Token** tokens, char* scope, size_t size,size_t* return_size){
-    Token** new_tokens = malloc(sizeof(Token*));
-    size_t token_size = 0;
-    int index =0;
-    while(index<(int)size){
-        Token* current_token = tokens[index];
-        new_tokens = realloc(new_tokens,sizeof(Token*)*(token_size+1));
-        switch(current_token->type){
-            case ARGUMENT_START:{
-                Token* token = loop_tokens(tokens,size,index,scope,ARGUMENT_START,ARGUMENT_END,&index);
-                token->type = ARGUMENT;
-                token->line = current_token->line;
-                new_tokens[token_size++] = token;
-                break;
-            }
-            case ARRAY_START:{
-                Token* token = loop_tokens(tokens,size,index,scope,ARRAY_START,ARRAY_END,&index);
-                token->line = current_token->line;
-                token->type = ARRAY;
-                new_tokens[token_size++] = token;
-                break;
-            }
-            default:{
-                new_tokens[token_size++] = current_token;
-                break;
-            }
-        }
-        index++;
-    }
-    *return_size = token_size;
-    return new_tokens;
-}
 void lex(Lexer* lexer){
     lexer_advance(lexer);
     while(lexer->index <= lexer->text_size){
         lexer->token = malloc(sizeof(Token));
         lexer->token->line = lexer->line;
         if(lexer->current_char == ' '){lexer_advance(lexer);continue;}
-        if(lexer->current_char == '\n'){
-            lexer->spacing=0;
+        if(lexer->current_char == '\n' || lexer->current_char == ';'){
+            if(lexer->hold->type == MACRO_REPLACE && lexer->current_char == ';'){lexer_advance(lexer);continue;}
+            int space; 
+            if(lexer->current_char == ';'){space = lexer->spacing++;}
+            else{space = lexer->spacing;lexer->spacing = 0;}
             lexer_advance(lexer);
-            while(lexer->current_char == ' ' && lexer->index <= lexer->text_size){lexer->spacing++;lexer_advance(lexer);}
-            if(lexer->last_type == NEW_LINE){
-                *(int*)lexer->tokens[lexer->token_size-1]->value = lexer->spacing;
+            while(lexer->current_char == ' '){lexer->spacing++;lexer_advance(lexer);}
+            if(lexer->hold->type == EMPTY && lexer->hold->size == 0){continue;}
+            ERROR(lexer->hold->type == EMPTY,lexer->token->line, (char*[]){"Unexpected new line",NULL},__func__,lexer->current_file);
+            if(lexer->hold->type == MACRO_REPLACE){
+                lexer_replace(lexer);
+                lexer->hold = new_parent();
                 continue;
             }
-            lexer->token->type = NEW_LINE;
-            lexer->token->value = malloc(sizeof(int));
-            *(int*)lexer->token->value = lexer->spacing;
-            goto add_token;
+            *(int*)lexer->hold->value = space;
+            lexer->tokens = realloc(lexer->tokens, sizeof(Token*) * (lexer->token_size + 1)); 
+            lexer->tokens[lexer->token_size++] = lexer->hold;
+            lexer->hold = new_parent();
+
         }
         if(is_digit(lexer->current_char)){lexer_integer(lexer);goto add_token;}
         for(int i=0;i<SEQUENCES_SIZE;i++){
-            char* peek = lexer_long_peek(lexer, strlen(sequence_start[i]));
-            if(!strcmp(peek, sequence_start[i])){
+            if(lexer->current_char == sequence_start[i]){
                 lexer_sequence(lexer,sequence_end[i],sequence_type[i]);
                 goto add_token;
             }
@@ -283,24 +278,25 @@ void lex(Lexer* lexer){
         if(is_alpha(lexer->current_char) || lexer->current_char=='_'){lexer_keyword(lexer);goto add_token;}
         lexer_sign(lexer);
         if(lexer->token->type == SKIP){lexer_advance(lexer);continue;}
-        if(lexer->token->type == SEMICOLON || lexer->token->type == FUNCTION_START){
-            lexer->token->value = malloc(sizeof(int));
-            *(int*)lexer->token->value = lexer->spacing+1;
+        if(lexer->token->type == FUNCTION_START || lexer->token->type == FUNCTION_END){
+            lexer->tokens = realloc(lexer->tokens, sizeof(Token*) * (lexer->token_size + 1));
+            lexer->tokens[lexer->token_size++] = lexer->token;
+            continue;
         }
         goto add_token;
         add_token:
-            if(lexer->token->type == EMPTY){free(lexer->token);continue;}
-            lexer->tokens = realloc(lexer->tokens, sizeof(Token*) * (lexer->token_size + 1));
-            lexer->tokens[lexer->token_size++] = lexer->token;
+            if(lexer->token->type == EMPTY){free(lexer->token->value);free(lexer->token);continue;}
+            lexer->hold->children = realloc(lexer->hold->children, sizeof(Token*) * (lexer->hold->size + 1));
+            lexer->hold->children[lexer->hold->size++] = lexer->token;
             lexer->last_type = lexer->token->type;
     }
-    ERROR(lexer->last_type != NEW_LINE,lexer->line,(char *[]){"End of file should end with a new line",NULL},__func__,lexer->current_file);
-    lexer->tokens = format(lexer->tokens,lexer->current_file,lexer->token_size,&lexer->token_size);
 }
-Lexer* new_lexer(char* path){
+Lexer* new_lexer(CompilerOptions* options){
     Lexer* lexer = malloc(sizeof(Lexer));
-    lexer->token = malloc(sizeof(Token));
+    lexer->options = options;
+    lexer->hold = new_parent();
     lexer->tokens = malloc(sizeof(Token*));
+    lexer->token = malloc(sizeof(Token));
     lexer->token_size = 0;
     lexer->line = 1;
     lexer->column = 0;
@@ -308,10 +304,12 @@ Lexer* new_lexer(char* path){
     lexer->spacing = 0;
     lexer->current_char = '\0';
     lexer->last_type = EMPTY;
-    qsort(keywords, KEYWORD_SIZE, sizeof(Keyword), compare_keywords);
-    qsort(sides,SIDES_SIZE, sizeof(Keyword), compare_keywords);
-    lexer->text = read_file(path);
-    lexer->text_size = strlen(lexer->text);
-    lexer->current_file = path;
+    lexer->text = read_file(options->file,&lexer->text_size);
+    lexer->current_file = options->file;
+    ERROR(lexer->text[0] != '\n',0, (char*[]){"File must start with a new line",NULL},__func__,lexer->current_file);
+    ERROR(lexer->text[lexer->text_size-1] != '\n',0, (char*[]){"File must end with a new line",NULL},__func__,lexer->current_file);
+    for(int i=0;i<lexer->text_size;i++){
+        printf("%c\n",lexer->text[i]);
+    }
     return lexer;
 }

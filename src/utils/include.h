@@ -6,13 +6,11 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <math.h>
-#include <sys/stat.h>
 
 #include "../file/include.h"
 
-#define CONFIG_FILE "config.lua"
-
 #define MAX_HASH_SIZE 100000
+#define MAX_STACK_SIZE 10000
 
 #define     RESET "\033[0m"
 #define     BLACK "\033[1m\033[30m"
@@ -25,46 +23,58 @@
 #define     WHITE "\033[1m\033[37m"
 
 typedef enum{
-    EMPTY,INTEGER,STRING,
+    EMPTY,INTEGER,STRING,SYMBOL,
     IDENTIFIER,
     ARRAY,ARGUMENT,
     
     ACTION_START,
         PUBLIC,MODULE,
-        FUNCTION,VARIABLE,
-        IF,ELIF,
-        PUSH,
+        FUNCTION,VARIABLE,  
+        IF,ELIF,    
+        PUSH,PUT,
         LOOP,
-        RETURN,BREAK,CONTINUE,
-        PLUS,MINUS,    
-        MULTIPLY,DIVIDE,
+        BREAK,CONTINUE,
+        PLUS,MINUS, // + -
+        MULTIPLY,DIVIDE, // * /
+        EQUAL_EQUAL, BANG_EQUAL, // == != 
+        GT,LT, // > <
+        OR,AND, // || &&
+        MACRO_REPLACE,
     ACTION_END,
     POP,
-    MACRO_REPLACE,
 
     ARGUMENT_START,ARGUMENT_END,
     FUNCTION_START,FUNCTION_END,
     ARRAY_START,ARRAY_END,
     COMMA, // ,
-    BANG, //!
-    LT, GT, // < >
-    LT_EQUAL, GT_EQUAL, // <= >=
-    BANG_EQUAL, EQUAL_EQUAL, // != ==
-    OR, AND, // || &&
     SKIP,
     NEW_LINE,SEMICOLON, // \n ;
 
     END,
 } Types;
+typedef struct BytecodeStruct Bytecode;
 typedef struct TokenStruct Token;
-typedef struct{
-    int return_type,* arguments;
-    int found;
-    size_t size;
-} Function;
-typedef struct {
+typedef struct BytecodeStruct{
     int type;
     void* value;
+    Bytecode** values;
+    Bytecode** children;
+    size_t value_size,children_size;
+}Bytecode;
+typedef struct{
+    int elements[MAX_STACK_SIZE];
+    int top;
+}Stack;
+typedef struct{
+    char* file;
+    int macro;
+} CompilerOptions;
+typedef struct{
+    void* value;
+    int type;
+}Memory;
+typedef struct {
+    Memory* value;
 } HashEntry;
 typedef struct{
     int size,ids[MAX_HASH_SIZE];
@@ -82,10 +92,10 @@ typedef struct TokenStruct{
     int type,line;
 }Token;
 typedef struct{
-    Token** tokens,*token;
+    CompilerOptions* options;
+    Token** tokens,*token,*hold;
     int last_type;
-    char current_char;
-    char *text,*current_file;
+    char current_char,*text,*current_file;
     size_t token_size,index,text_size,spacing;
     size_t line,column;
 }Lexer;
@@ -96,6 +106,7 @@ char* SINGLE_STRING(char**array);
 char* STRINGIFY(int value);
 char* LOWER(char* string);
 char** SPLIT(char* string,char* split,int* return_size);
+void PRINT_BYTECODE(Bytecode* bytecode,int level);
 void PRINT_TOKEN(Token* token,int level);
 char* VALUE(void* value,int type);
 char* TYPE(int type);
