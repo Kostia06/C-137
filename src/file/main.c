@@ -1,18 +1,16 @@
 #include "include.h"
 
-char* read_file(char* file_name){
-    struct stat sb;
-    ERROR(stat(file_name, &sb) == -1,0, (char *[]){"Directory \"",file_name,"\" not found",NULL},__func__,"PUBLIC");
-    ERROR(S_ISDIR(sb.st_mode)==1,0,(char*[]){"File not found",NULL},__func__,"PUBLIC");
-    FILE* fp = fopen(file_name, "r");
-    ERROR(fp == NULL,0, (char *[]){"Error opening file \"",file_name,"\"",NULL},__func__,"PUBLIC");
-    fseek(fp, 0, SEEK_END);
-    long file_size = ftell(fp);
-    rewind(fp);
-    char* buffer = (char*) malloc(sizeof(char) * (file_size + 1));
-    size_t result = fread(buffer, 1, file_size, fp);
+char* read_file(char* file_name,size_t* return_size){
+    FILE* file = fopen(file_name, "r");
+    ERROR(file == NULL,0,(char*[]){"File not found",NULL},__func__,"PUBLIC");
+    fseek(file, 0, SEEK_END);
+    size_t file_size = ftell(file);
+    fseek(file, 0, SEEK_SET);
+    char* buffer = (char*) malloc(file_size);
+    fread(buffer, 1, file_size, file);
     buffer[file_size] = '\0';
-    fclose(fp);
+    fclose(file);
+    *return_size = file_size;
     return buffer;
 }
 char** get_error_lines(char* file_name,int index,int size,int* return_size,int* return_index){

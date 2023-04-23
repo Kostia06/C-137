@@ -3,7 +3,8 @@
 
 #include "../utils/include.h" 
 
-char* parameters(char** args, int size);
+CompilerOptions* parameters(char** args, int size);
+
 
 
 #endif

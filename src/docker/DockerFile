@@ -1,0 +1,19 @@
+ARG OS_ARCH
+FROM ${OS_ARCH} AS builder
+ARG DIR
+
+
+RUN apt-get update && apt-get install -y build-essential
+WORKDIR /app
+COPY main.c .
+
+RUN gcc -o main main.c
+
+FROM alpine:latest
+WORKDIR /app
+
+COPY --from=builder /app/main .
+
+ARG BIN_DIR
+
+CMD ["{BIN_DIR}"]
