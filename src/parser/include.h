@@ -2,9 +2,10 @@
 #define PARSER_H
 
 #include "../utils/include.h"
+#include "../vector/include.h"
 
-Command** parse(Token** tokens,size_t size,char* scope,size_t* return_size);
+void parser_init();
+Vector* parse(Vector* tokens,int type,char* scope);
 
 
 #endif
-

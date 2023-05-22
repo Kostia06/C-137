@@ -1,75 +1,41 @@
 #include "include.h"
-
-#define SHOW_ERROR_FUNCTION 1
+#include "../vector/include.h"
 
 static char* VALUE(Token* token){
     if(token->type == T_EMPTY){return "EMPTY";}
     if(token->type == T_INTEGER || token->type == T_NEW_LINE || token->type == T_FLOAT){return STRINGIFY(token->value.integer);}
     return token->value.string;
 }
-static char* multiply_string(char* str,int times){
-    char* new_str = malloc(sizeof(char));
-    for(int i=0;i<times;i++){
-        new_str = realloc(new_str,sizeof(char)*(strlen(new_str)+strlen(str)+1));
-        strcat(new_str,str);
-    }
-    return new_str;
-}
+
 char** ALL_SCOPES(char* scope,size_t* return_size){
     int size = 0;
     char** scopes = SPLIT(scope,"!~!",&size);
-    char** new_scopes = malloc(sizeof(char*));
-    size_t new_size = 0;
-    char* current_scope = scopes[0];
-    new_scopes = realloc(new_scopes,sizeof(char*)*(new_size+1));
-    new_scopes[new_size++] = current_scope;
-    for(int i =1;i<size;i++){
-        strcat(current_scope,"!~!");
-        strcat(current_scope,scopes[i]);
-        new_scopes = realloc(new_scopes,sizeof(char*)*(new_size+1));
-        new_scopes[new_size++] = current_scope;
-    }
-    *return_size = new_size;
-    return new_scopes;
-}
-void ERROR(int condition,int line,char **message,const char* fun,char* scope){
-    if(!condition){return;}
-    char *msg = malloc(sizeof(char));
-    char* space = malloc(sizeof(char));
-    for (int i = 0;message[i]!=NULL; i++){
-        msg = realloc(msg, sizeof(char) * (strlen(msg) + strlen(message[i])));
-        strcat(msg, message[i]);
-    }
-    msg = realloc(msg, sizeof(char) * (strlen(msg) + 1));
-    msg[strlen(msg)] = '\0';
-    if(strcmp(scope,"PUBLIC")){
-        size_t _ = 0; 
-        char* file = ALL_SCOPES(scope,&_)[0];
-        int line_size = 0;
-        int index = 0;
-        char** lines =get_error_lines(file,line,3,&line_size,&index);
-        int start_line = line - index;
-        printf("%sERROR",RED);
-        printf("%s[%s%d%s]",WHITE,MAGENTA,line,WHITE);
-        printf("%s[%s%s%s]",WHITE,MAGENTA,scope,WHITE);
-        #if SHOW_ERROR_FUNCTION == 1
-            printf("%s[%s%s%s]",WHITE,MAGENTA,fun,WHITE);
-        #endif
-        printf("\n");
-        for(int i=0;i<line_size;i++){
-            printf("%s|%d\t%s%s%s\n",CYAN,start_line++,WHITE,lines[i],RESET);
-            if(i==index){
-                int current_line_length = strlen(lines[i]);
-                printf("%s",RED);
-                printf("\t%s\n",multiply_string("^",current_line_length));
-                printf("\t%s\n%s",msg,RESET);
-            }
+    char** new_scopes = malloc(sizeof(char*)*size);
+    char current_scope[strlen(scopes[0])];
+    strcpy(current_scope, scopes[0]);
+    for(int i =0;i<size;i++){
+        char* result = malloc(sizeof(char)*strlen(current_scope)+1);
+        strcat(result,current_scope);
+        new_scopes[i] = result;
+        if(i+1<size){
+            strcat(current_scope,"!~!");
+            strcat(current_scope,scopes[i+1]);
         }
     }
-    else{
-        printf("%sERROR:\t%s%s\n",RED,msg,RESET);
-    }
-    exit(1);
+    *return_size = size;
+    return new_scopes;
+}
+char* READ_FILE(char* file_name){
+    FILE* file = fopen(file_name, "r");
+    ERROR(file == NULL,0,0,0,(char*[]){"File not found",NULL},"ERROR");
+    fseek(file, 0, SEEK_END);
+    size_t file_size = ftell(file);
+    rewind(file);
+    char* buffer = (char*) malloc(file_size+1);
+    size_t butes_read = fread(buffer, sizeof(char), file_size, file);
+    buffer[file_size] = '\0';
+    fclose(file);
+    return buffer;
 }
 char* STRINGIFY(float value){
     char* str = malloc(sizeof(char));
@@ -94,27 +60,19 @@ char** SPLIT(char* string,char* split,int* return_size){
     *return_size = i;
     return array;
 }
-void PRINT_COMMAND(Command* command,int level){
-    char* tab = malloc(sizeof(char)*level);
-    for(int i=0;i<level;i++){tab[i] = '\t';}
-    printf("%sCommand: %s:%d:%s\n",tab,command->declaration==T_NEW_LINE ? "NEW_LINE" : "SEMICOLON",command->spacing,PARSER_TYPE(command->type));
-    for(int i=0;i<(int)command->ast_size;i++){PRINT_AST(command->asts[i],level+1);}
-    for(int i=0;i<(int)command->command_size;i++){PRINT_COMMAND(command->commands[i],level+1);}
-}
-void PRINT_TOKEN(Token* token,int level){
-    char* tab = malloc(sizeof(char)*level);
-    for(int i=0;i<level;i++){tab[i] = '\t';}
-    printf("%sToken:%d:%s",tab,token->line,TOKEN_TYPE(token->type));
-    if(token->type == T_IDENTIFIER || token->type == T_STRING || token->type == T_SIGN || token->type == T_INTEGER || token->type == T_FLOAT){
-        printf("%s\tValue:%s",tab,VALUE(token));
+void PRINT_TOKEN(Token* token){
+    printf("Token:%d:%d:%d:%s",token->line,token->column,token->size,TOKEN_TYPE(token->type));
+    if(token->type == T_NEW_LINE || token->type == T_IDENTIFIER || token->type == T_S_STRING || token->type == T_STRING || token->type == T_SIGN || token->type == T_INTEGER || token->type == T_FLOAT){
+        printf("\tValue:%s",VALUE(token));
     }
     printf("\n");
-    for(int i=0;i<token->size;i++){PRINT_TOKEN(token->value.children[i],level+1);}
 }
 void PRINT_AST(AST* ast,int level){
     char* tab = malloc(sizeof(char)*level);
     for(int i=0;i<level;i++){tab[i] = '\t';}
-    printf("%sAST:%d:%s",tab,ast->line,PARSER_TYPE(ast->type));
+    printf("%sAST:%d:",tab,ast->line);
+    if(ast->type == ast->actual_type){printf("%s",PARSER_TYPE(ast->type));}
+    else{printf("%s->%s",PARSER_TYPE(ast->actual_type),PARSER_TYPE(ast->type));}
     if(ast->type == P_IDENTIFIER || ast->type == P_INTEGER || ast->type == P_FLOAT){
         char* value;
         if(ast->type == P_EMPTY){value = "EMPTY";}
@@ -123,61 +81,83 @@ void PRINT_AST(AST* ast,int level){
         printf("\tValue: %s",value);
     }
     printf("\n");
-    for(int i=0;i<ast->size;i++){PRINT_AST(ast->children[i],level+1);}
+    if(ast->children == NULL){return;}
+    for(int i=0;i<ast->children->size;i++){PRINT_AST(vector_get(ast->children,i),level+1);}
+    
 }
 char* PARSER_TYPE(int type){
     return (char*[]){
-        "P_EMPTY",
-        "P_IDENTIFIER",
-        "P_INTEGER",
-        "P_FLOAT",
+        "EMPTY",
+        "IDENTIFIER",
+        "NEW LINE",
 
-        "P_ADD",
-        "P_SUB",
-        "P_MUL",
-        "P_DIV",
+        "COMMA","END OF ARGUMENT",
 
-        "P_TYPE",
-        "P_POINTER",
-        "P_ARRAY",
-        "P_ARGUMENT",
+        "PARAMETERS",
+        "TUPLE WITH TYPES",
+        "TUPLE WITH VALUES",
+        "TUPLE WITH IDENTIFIERS",
+       
+        "TYPE AND IDENTIFIER",
+
+        "ARRAY","POINTER",
+
+        "INTEGER","FLOAT","STRING",
+
+        "FUNCTION","STRUCT","EQUAL","SEMICOLON",
+        "IF","ELIF",
+        "LOOP",
+        "BREAK","CONTINUE",
+        "RETURN",
         
-        "P_VARIABLE_DECLARATION",   
-        "P_FUNCTION_DECLARATION",
-        "P_FUNCTION_CALL",
-        "P_IF","P_ELIF",
-        "P_LOOP",
-        "P_BREAK","P_CONTINUE",
-        "P_RETURN",
+        "EXPRESSION","VARIABLE",
+
+        "ADD","SUBTRACT","MULTIPLY","DIVIDE","MODULO",
+        "EQUAL EQUAL","NOT EQUAL", 
+        "LESS THAN","GREATER THAN","LESS THAN EQUAL","GREATER THAN EQUAL",
+        "OR","AND",
+
+        "TYPE",
+        "MUTABLE",
+        "I1","I8","I16","I32","I64","F128",
+        "F16","F32","F64","F128",
+
+        "END",
     }[type];
 }
 char* TOKEN_TYPE(int type){
     return (char*[]){
         "EMPTY","INTEGER","FLOAT","SINGLE STRING","DOUBLE STRING","BACKTICK STRING", 
         "SIGN","COMMENT",
-        "IDENTIFIER","NEW_LINE",
-        "SEMICOLON","STRING",
-        
+        "IDENTIFIER","NEW LINE",
+        "STRING",
+       
+        "FUNCTION","STRUCT","EQUAL","SEMICOLON",
         "IF","ELIF",
         "LOOP",
         "BREAK","CONTINUE",
         "RETURN",
-        
+ 
+        "MUTABLE",
+
         "PLUS","MINUS",
         "MULTIPLY","DIVIDE",
-        "EQUAL_EQUAL", "BANG_EQUAL",
-        "LT", "GT", 
-        "OR", "AND",
-        "EQUAL", 
+        "MODULO",
 
-        "ARGUMENT_START","ARGUMENT_END","ARGUMENT",
-        "ARRAY_START","ARRAY_END","ARRAY",
+        "EQUAL EQUAL","NOT EQUAL", 
+        "LESS THAN","GREATER THAN","LESS THAN EQUAL","GREATER THAN EQUAL",
+
+        "OR", "AND",
+
+        "POINTER",
+
+        "ARGUMENT START","ARGUMENT END","ARGUMENT",
+        "ARRAY START","ARRAY END","ARRAY",
         
         "COMMA",
         
-        "TYPE_START",
-            "I8","I16","I32","I64",
-        "TYPE_END",
+        "I1","I8","I16","I32","I64","I128",
+        "F16","F32","F64","F128",
         
         "END",
     }[type];

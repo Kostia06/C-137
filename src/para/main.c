@@ -8,7 +8,8 @@ CompilerOptions* parameters(char** args, int size){
     int i=0;
     while(i<size){
         if(args[i][0] == '-'){
-            ERROR(i+1>=size,0,(char*[]){"No path specified after -f",NULL},__func__,"PUBLIC");
+            char* error[] = {"No value given after -f",NULL};
+            ERROR(i+1>=size,0,0,0,error,"ERROR");
             char c = args[i++][1];
             switch(c){
                 case 'f':{
