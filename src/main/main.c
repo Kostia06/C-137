@@ -7,9 +7,10 @@
 #include "../lexer/include.h"
 #include "../parser/include.h"
 #include "../para/include.h"
+#include "../bakcend/include.h"
 
 #define DEBUG_TOKEN     0
-#define DEBUG_AST       1
+#define DEBUG_AST       0
 
 int main(int argc, char *argv[]){
     CompilerOptions* options = parameters(argv,argc);
@@ -35,5 +36,8 @@ int main(int argc, char *argv[]){
         }
         printf("-------------------------------------------------\n");
     #endif
+
+    backend_compile(asts,scope);
+
     return 0;
 }
