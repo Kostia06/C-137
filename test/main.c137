@@ -1,5 +1,5 @@
 /*
-    
+    This is test file 
 
 
 
@@ -7,6 +7,7 @@
 
 
 fn add(num1: i32 = 0, num2: i32 = 0): i32
+    // combine the numbers
     return num1 + num2
 
 fn math(num1: i32, num2: i32): i32

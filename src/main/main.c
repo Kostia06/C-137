@@ -65,6 +65,7 @@ int main(int argc, char *argv[]){
         Vector* nodes = lex(node_memory,file);
         // create asts from the nodes
         Vector* asts = parse(node_memory,nodes,file);
+        continue;
         // analyze the asts
         Vector* analyzed_asts = analyze(node_memory,asts,file);
     }
