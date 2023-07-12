@@ -1,5 +1,4 @@
 #include "../private.h"
-/**/
 // Start of a comment
 void lexer_comment_advance(Lexer* lexer){
     if(lexer->current_char == '*'){
