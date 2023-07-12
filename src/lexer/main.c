@@ -1,69 +1,68 @@
 #include "include.h"
 #include "private.h"
 
-#define DEBUG_TOKEN     0
-
-static int compare_keyword(const void* a,const void* b){
-    Keyword* keyword_a = (Keyword*)a;
-    Keyword* keyword_b = (Keyword*)b;
-    return strlen(keyword_b->name) - strlen(keyword_a->name);
+Node* new_empty_node(MemoryGroup* memory){
+    Node* node = mem_init(memory,sizeof(Node));
+    node->type = EMPTY;
+    return node;
 }
-
-
-Token* new_empty_token(int line){
-    Token* token = malloc(sizeof(Token));
-    token->type = T_EMPTY;
-    token->line = line;
-    return token;
+// Add the current node to the vector and create a new node
+void lexer_reset_node(Lexer* lexer){
+    vector_add(lexer->nodes,lexer->node);
+    lexer->node = new_empty_node(lexer->memory);
 }
-void lexer_reset_token(Lexer* lexer){
-    vector_add(lexer->tokens,lexer->token);
-    lexer->token = new_empty_token(lexer->line);
-}
+// Gets the next character from the file
 void lexer_advance(Lexer* lexer){
     lexer->index++;
-    lexer->column++;
     lexer->current_char = lexer->text[lexer->index];
 }
-
-
-Vector* new_lexer(char* text, char* scope){
-    Lexer* lexer = malloc(sizeof(Lexer));
-    lexer->tokens = vector_init();
-    lexer->token = new_empty_token(1);
-    lexer->token_size = 0;
-    lexer->line = 0;
-    lexer->column = 0;
-    lexer->index = 0;
-    lexer->text = malloc(sizeof(char)*strlen(text)+2);
-    lexer->text[0] = '\n';
-    strcat(lexer->text,text);
-    lexer->text_size = strlen(text)+1;
-    lexer->scope = scope;
+// Returns the previous character from the file 
+void lexer_back(Lexer* lexer){
+    lexer->index--;
     lexer->current_char = lexer->text[lexer->index];
-    qsort(keywords,KEYWORD_COUNT,sizeof(Keyword),compare_keyword);
-    qsort(signs,SIGN_COUNT,sizeof(Keyword),compare_keyword);
+}
+char lexer_peek(Lexer* lexer){
+    return lexer->text[lexer->index+1]; 
+}
+Vector* new_lexer(ErrorGroup* error,MemoryGroup* memory,char* text, char* scope){
+    if(text == NULL){return NULL;}
+    Lexer* lexer = mem_init(memory,sizeof(Lexer));
+    // Memory & error group
+    lexer->memory = memory;
+    lexer->error = error;
+    // Vector of nodes and current node
+    lexer->nodes = vector_init();
+    lexer->node = new_empty_node(memory);
+    lexer->node->type = NEW_LINE;
+    // Get the file
+    lexer->text = text;
+    lexer->text_size = strlen(text);
+
+    lexer->scope = scope;
+    lexer->current_char = lexer->text[0];
+    
     while(lexer->index < lexer->text_size){
-        int type = 0;
-        if(lexer->current_char < 0){type = LT_ALPHA;}
-        else{type = characters[lexer->current_char];}
-        lexer_function function = states[lexer->token->type][type];
+        // Variable checks if the current character is a emoji
+        // Every emoji is a array of negative numbers 
+        int type = LT_ALPHA;
+        // if the current character is not a emoji get the character type from the array
+        if(lexer->current_char >= 0){type = characters[lexer->current_char];}
+        // Get the function that corresponds to the current character type
+        lexer_function function = states[lexer->node->type][type];
         function(lexer);
+    
     }
-    #if DEBUG_TOKEN == 1
-        for(int i = 0; i < lexer->tokens->size; i++){
-            Token* token = vector_get(lexer->tokens,i);
-            PRINT_TOKEN(token);
-        }
-    #endif
-    {
-        char* error[] = {"String not closed",NULL};
-        int e_condition = lexer->token->type != T_NEW_LINE;
-        ERROR(e_condition,lexer->token->line,lexer->token->column,1,error,lexer->scope);
+    // If the string is not closed
+    if(lexer->node->type != NEW_LINE){
+        char* message = SYNC((char*[]){"String not closed",NULL});
+        error_single_init(lexer->error,SYNTAX_ERROR,lexer->node->index,lexer->node->index+1,message);
     }
-    lexer_reset_token(lexer);
-    Vector* tokens = lexer->tokens;
-    free(lexer->text);
-    free(lexer); 
-    return tokens;
+    // get the last node
+    lexer_reset_node(lexer);
+
+    Vector* nodes = lexer->nodes;
+    mem_free(memory,lexer->node);
+    mem_free(memory,lexer->text);
+    mem_free(memory,lexer);
+    return nodes;
 }

@@ -2,8 +2,7 @@
 
 CC="clang"
 NAME="Lang"
-#- toml
-C_FLAGS=" -I /opt/homebrew/Cellar/llvm/16.0.2/include/ -L /opt/homebrew/Cellar/llvm/16.0.2/lib/ -lLLVM"
+C_FLAGS=" -I/opt/homebrew/opt/llvm/include -L/opt/homebrew/opt/llvm/lib -lLLVM "
 SRC=$(find ../src/ -type f -name "*.c")
 ARGS=""
 for i in {1..10}

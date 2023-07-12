@@ -1,12 +1,26 @@
 #include "include.h"
-#include "../vector/include.h"
 
-static char* VALUE(Token* token){
-    if(token->type == T_EMPTY){return "EMPTY";}
-    if(token->type == T_INTEGER || token->type == T_NEW_LINE || token->type == T_FLOAT){return STRINGIFY(token->value.integer);}
-    return token->value.string;
+#define DEBUG_NODE    0 
+
+#if DEBUG_NODE == 1
+    static int node_count;
+#endif
+
+char* SYNC(char** array){
+    int num = 0;
+    int length = 0;
+    while (array[num] != NULL) {
+        length += strlen(array[num++]);
+    }
+    char* combined = (char*)malloc((length + 1) * sizeof(char));
+    int index = 0;
+    for (int i = 0; i < num; i++) {
+        strcpy(combined + index, array[i]);
+        index += strlen(array[i]);
+    }
+    combined[length] = '\0';
+    return combined;
 }
-
 char** ALL_SCOPES(char* scope,size_t* return_size){
     int size = 0;
     char** scopes = SPLIT(scope,"!~!",&size);
@@ -25,21 +39,31 @@ char** ALL_SCOPES(char* scope,size_t* return_size){
     *return_size = size;
     return new_scopes;
 }
-char* READ_FILE(char* file_name){
+char* READ_FILE(ErrorGroup* error,MemoryGroup* memory,char* file_name){
     FILE* file = fopen(file_name, "r");
-    ERROR(file == NULL,0,0,0,(char*[]){"File not found",NULL},"ERROR");
+    if(!file){
+        char* message = SYNC((char*[]){"File not found",NULL});
+        error_single_init(error,FILE_ERROR,0,0,message);
+        return NULL;
+    }
     fseek(file, 0, SEEK_END);
     size_t file_size = ftell(file);
     rewind(file);
-    char* buffer = (char*) malloc(file_size+1);
+    char* buffer =  mem_init(memory,file_size+1);
     size_t butes_read = fread(buffer, sizeof(char), file_size, file);
     buffer[file_size] = '\0';
     fclose(file);
     return buffer;
 }
-char* STRINGIFY(float value){
-    char* str = malloc(sizeof(char));
-    sprintf(str,"%f",value);
+char* STRINGIFY(float num){
+    float decimal = num - (int)num;
+    if (decimal == 0.0) {
+        char* str = (char*)malloc(12 * sizeof(char));
+        snprintf(str, 12, "%d", (int)num);
+        return str;
+    }
+    char* str = (char*)malloc(32 * sizeof(char)); 
+    snprintf(str, 32, "%f", num);
     return str;
 }
 char** SPLIT(char* string,char* split,int* return_size){
@@ -60,105 +84,87 @@ char** SPLIT(char* string,char* split,int* return_size){
     *return_size = i;
     return array;
 }
-void PRINT_TOKEN(Token* token){
-    printf("Token:%d:%d:%d:%s",token->line,token->column,token->size,TOKEN_TYPE(token->type));
-    if(token->type == T_NEW_LINE || token->type == T_IDENTIFIER || token->type == T_S_STRING || token->type == T_STRING || token->type == T_SIGN || token->type == T_INTEGER || token->type == T_FLOAT){
-        printf("\tValue:%s",VALUE(token));
-    }
-    printf("\n");
-}
-void PRINT_AST(AST* ast,int level){
+void PRINT_NODE(Node* node,int level){
     char* tab = malloc(sizeof(char)*level);
     for(int i=0;i<level;i++){tab[i] = '\t';}
-    printf("%sAST:%d:",tab,ast->line);
-    if(ast->type == ast->actual_type){printf("%s",PARSER_TYPE(ast->type));}
-    else{printf("%s->%s",PARSER_TYPE(ast->actual_type),PARSER_TYPE(ast->type));}
-    if(ast->type == P_IDENTIFIER || ast->type == P_INTEGER || ast->type == P_FLOAT){
+#if DEBUG_NODE == 1
+        printf("%s%d NODE:",tab,++node_count);
+#else
+        printf("%sNODE:",tab);
+#endif
+    printf("%s",PRINT_TYPE(node->type));
+    if(node->type == STRING || node->type == IDENTIFIER || node->type == INTEGER || node->type == FLOAT){
+        printf("\t\t");
         char* value;
-        if(ast->type == P_EMPTY){value = "EMPTY";}
-        else if(ast->type == P_INTEGER || ast->type == P_FLOAT){value = STRINGIFY(ast->value.integer);}
-        else{value = ast->value.string;}
-        printf("\tValue: %s",value);
+        if(node->type == EMPTY){value = "EMPTY";}
+        else{value = node->value.string;}
+        #if DEBUG_NODE == 1
+            printf("%d Value: %s",++node_count,value);
+        #else
+            printf("Value: %s",value);
+        #endif
     }
     printf("\n");
-    if(ast->children == NULL){return;}
-    for(int i=0;i<ast->children->size;i++){PRINT_AST(vector_get(ast->children,i),level+1);}
+    if(node->children == NULL){return;}
+    for(int i=0;i<node->children->size;i++){PRINT_NODE(vector_get(node->children,i),level+1);}
     
 }
-char* PARSER_TYPE(int type){
-    return (char*[]){
-        "EMPTY",
-        "IDENTIFIER",
-        "NEW LINE",
+// table shows if node has a value with memory allocated
+static int has_memory[END] = {
+    [STRING] = 1,   [IDENTIFIER] = 1,
+    [INTEGER] = 1,  [FLOAT] = 1,
+};
+// free a node
+void FREE_NODE(MemoryGroup* memory,Node* node){
+    if(!node->value.string){mem_free(memory,node->value.string);}
+    if(node->children){
+        for(int i=0;i<(int)node->children->size;i++){
+            FREE_NODE(memory,vector_get(node->children,i));
+        }
+        vector_free(node->children);
+    }
+    mem_free(memory,node);
 
-        "COMMA","END OF ARGUMENT",
-
-        "PARAMETERS",
-        "TUPLE WITH TYPES",
-        "TUPLE WITH VALUES",
-        "TUPLE WITH IDENTIFIERS",
-       
-        "TYPE AND IDENTIFIER",
-
-        "ARRAY","POINTER",
-
-        "INTEGER","FLOAT","STRING",
-
-        "FUNCTION","STRUCT","EQUAL","SEMICOLON",
-        "IF","ELIF",
-        "LOOP",
-        "BREAK","CONTINUE",
-        "RETURN",
-        
-        "EXPRESSION","VARIABLE",
-
-        "ADD","SUBTRACT","MULTIPLY","DIVIDE","MODULO",
-        "EQUAL EQUAL","NOT EQUAL", 
-        "LESS THAN","GREATER THAN","LESS THAN EQUAL","GREATER THAN EQUAL",
-        "OR","AND",
-
-        "TYPE",
-        "MUTABLE",
-        "I1","I8","I16","I32","I64","F128",
-        "F16","F32","F64","F128",
-
-        "END",
-    }[type];
 }
-char* TOKEN_TYPE(int type){
+char* PRINT_TYPE(int type){
     return (char*[]){
-        "EMPTY","INTEGER","FLOAT","SINGLE STRING","DOUBLE STRING","BACKTICK STRING", 
-        "SIGN","COMMENT",
-        "IDENTIFIER","NEW LINE",
-        "STRING",
-       
-        "FUNCTION","STRUCT","EQUAL","SEMICOLON",
-        "IF","ELIF",
-        "LOOP",
-        "BREAK","CONTINUE",
-        "RETURN",
- 
-        "MUTABLE",
+        //Types
+        "EMPTY", "INTEGER", "FLOAT", "STRING", 
+        "ARRAY","ARGUMENT",
+        "IDENTIFIER",
 
-        "PLUS","MINUS",
-        "MULTIPLY","DIVIDE",
-        "MODULO",
+        // Keywords + Command names
+        "FUNCTION", "TYPE", "EXPRESSION", "SIGN",
+        "DECLARATION",
+        "IF", "ELSE", "LOOP",
+        "BREAK", "CONTINUE", "RETURN",
 
-        "EQUAL EQUAL","NOT EQUAL", 
-        "LESS THAN","GREATER THAN","LESS THAN EQUAL","GREATER THAN EQUAL",
+        // Types
+        "I1","I8","I16","I32", "I64", "I128",
+        "F16","F32", "F64", "F128", 
 
-        "OR", "AND",
+        // Operators
+        "OP START",
+            "ADD", "SUB", "MUL", "DIV",
+            "EQUAL_EQUAL", "BANG_EQUAL",
+            "GREATER", "LESS", "GREATER_EQUAL", "LESS_EQUAL",
+            "OR", "AND",
 
-        "POINTER",
-
-        "ARGUMENT START","ARGUMENT END","ARGUMENT",
-        "ARRAY START","ARRAY END","ARRAY",
+            "BITWISE AND", "BITWISE OR", 
+            "BITWISE XOR",
+            "BITWISE LEFT SHIFT", "BITWISE RIGHT SHIFT",
+        "OP END",
+        // Signs
         
-        "COMMA",
+        "ARGUMENT_START", "ARGUMENT_END",
+        "ARRAY_START", "ARRAY_END",
+
+        "NEW_LINE", "SEMICOLON",
+        "QUESTION", "EXCLAMATION",
         
-        "I1","I8","I16","I32","I64","I128",
-        "F16","F32","F64","F128",
-        
-        "END",
+        "S_STRING", "D_STRING", "B_STRING",
+
+        "EQUAL","COMMA","COLON",
+
     }[type];
 }

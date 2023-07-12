@@ -1,11 +1,9 @@
-#ifndef PARSER_H
-#define PARSER_H
+#ifndef PRASER_H
+#define PRASER_H
 
 #include "../utils/include.h"
-#include "../vector/include.h"
 
-void parser_init();
-Vector* parse(Vector* tokens,int type,char* scope);
+Vector* new_parser(ErrorGroup* error,MemoryGroup* memory,Vector* nodes,int starter_type,char* scope);
 
 
 #endif

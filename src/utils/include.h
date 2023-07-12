@@ -6,134 +6,124 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <math.h>
-
-#include "../error/include.h"
-
-#define MAX_HASH_SIZE 100000
+#include <locale.h>
 
 #define     RESET "\033[0m"
-#define     BLACK "\033[1m\033[30m"
 #define     RED "\033[1m\033[31m"
-#define     GREEN "\033[1m\033[32m"
-#define     YELLOW "\033[1m\033[33m"
-#define     BLUE "\033[1m\033[34m"
+#define     RED_UNDERLINE "\033[4m\033[31m"
 #define     MAGENTA "\033[1m\033[35m"
 #define     CYAN "\033[1m\033[36m"
 #define     WHITE "\033[1m\033[37m"
 
 typedef enum{
-    T_EMPTY,T_INTEGER,T_FLOAT,T_S_STRING,T_D_STRING,T_B_STRING,
-    T_SIGN,T_COMMENT,
-    T_IDENTIFIER,T_NEW_LINE,
-    T_STRING,
-    
-    T_FN,T_STRUCT,T_EQUAL,T_SEMICOLON,
-    T_IF,T_ELIF,    
-    T_LOOP,
-    T_BREAK,T_CONTINUE,
-    T_RETURN, 
+    // Types
+    EMPTY, INTEGER, FLOAT, STRING, 
+    ARRAY,ARGUMENT,
+    IDENTIFIER,
+    // Keywords + Command names
+    FUNCTION, TYPE, EXPRESSION, SIGN,
+    DECLARATION, 
+    IF, ELSE, LOOP,
+    BREAK, CONTINUE, RETURN,
 
-    T_MUTABLE,
+    // Types 
+    I1, I8, I16,I32, I64, I128, 
+    F16,F32, F64, F128,
+        
+    // Operators
+    OP_START,
+        ADD, SUB, MUL, DIV,
+        EQUAL_EQUAL, BANG_EQUAL,
+        GREATER, LESS, GREATER_EQUAL, LESS_EQUAL,
+        OR, AND,
+        
+        B_AND,B_OR,
+        B_XOR,
+        B_LEFT,B_RIGHT,
 
-    T_ADD,T_SUB, 
-    T_MUL,T_DIV, 
-    T_MOD,
-    T_EQUAL_EQUAL,T_BANG_EQUAL,  
-    T_GT,T_LT, 
-    T_GT_EQUAL,T_LT_EQUAL,
-    T_OR,T_AND, 
+    OP_END,
 
-    T_POINTER, 
+    // Signs
     
-    T_ARGUMENT_START,T_ARGUMENT_END,T_ARGUMENT, 
-    T_ARRAY_START,T_ARRAY_END,T_ARRAY, 
+    ARGUMENT_START, ARGUMENT_END,
+    ARRAY_START, ARRAY_END,
     
-    T_COMMA, 
-    
-    T_I1,T_I8,T_I16,T_I32,T_I64,T_I128,
-    T_F16,T_F32,T_F64,T_F128,
+    NEW_LINE, SEMICOLON,
+    QUESTION, EXCLAMATION,
 
-    T_END,
+    S_STRING, D_STRING, B_STRING,
+    EQUAL, COMMA, COLON,
+    // Comments
+    SINGLE_COMMENT, SINGLE_COMMENT_START,
+    MULTI_COMMENT,MULTI_COMMENT_START,
+    // Error types
+    SYNTAX_ERROR, FILE_ERROR, 
+
+    END,
 } Types;
-enum{
-    P_EMPTY,
-    P_IDENTIFIER,
-    P_NEW_LINE,
 
-    P_COMMA,P_END_OF_ARGUMENT,
-
-    P_PARAMETERS,
-    P_TUPLE_WITH_TYPES,
-    P_TUPLE_WITH_VALUES,
-    P_TUPLE_WITH_IDENTIFIERS,
-   
-    P_TYPE_AND_IDENTIFIER,
-
-    P_ARRAY,P_POINTER,
-
-    P_INTEGER,P_FLOAT,P_STRING,
-
-    P_FN,P_STRUCT, P_EQUAL,P_SEMICOLON,
-    P_IF,P_ELIF,
-    P_LOOP,
-    P_BREAK,P_CONTINUE,
-    P_RETURN,
-
-    P_EXPRESSION, P_VARIABLE,
-
-    P_ADD,P_SUB, 
-    P_MUL,P_DIV, 
-    P_MOD,
-    P_EQUAL_EQUAL,P_BANG_EQUAL,  
-    P_GT,P_LT, 
-    P_GT_EQUAL,P_LT_EQUAL,
-    P_OR,P_AND,
-
-    P_TYPE,
-    P_MUTABLE,
-    P_I1,P_I8,P_I16,P_I32,P_I64,P_I128,
-    P_F16,P_F32,P_F64,P_F128,
-
-    P_END,
-}ParserType;
-typedef struct TokenStruct Token;
-typedef struct ASTStruct AST;
-typedef struct TokenStruct Token;
 typedef struct{
     void** data;
     size_t size;
     size_t capacity;
 }Vector;
+
 typedef struct{
-    char* file;
-    int macro;
-} CompilerOptions;
-typedef struct TokenStruct{
+    Vector* ptrs;
+}MemoryGroup;
+
+typedef struct{
     union{
-        float integer;
+        int integer;
         char* string;
     }value;
-    int column, size;
-    int type,line;
-}Token;
-typedef struct ASTStruct{
-    union{
-        float integer;
-        char* string;
-    }value;
-    int line,column,size;
-    int type,actual_type;
+    int index, size;
+    int type;
     Vector* children;
-}AST;
+}Node;
 
+typedef struct{
+    int type, start, end;
+    char* message;
+} ErrorRule;
+
+typedef struct{
+    char* scope;
+    Vector* rules;
+} ErrorGroup;
+
+// Tools
 char** ALL_SCOPES(char* scope,size_t* return_size);
-char* READ_FILE(char* file_name);
-char* STRINGIFY(float value);
+char* READ_FILE(ErrorGroup* error,MemoryGroup* memory,char* file_name);
+char* STRINGIFY(float num);
 char** SPLIT(char* string,char* split,int* return_size);
-
-void PRINT_TOKEN(Token* token);
-void PRINT_AST(AST* ast,int level);
-char* TOKEN_TYPE(int type);
-char* PARSER_TYPE(int type);
+void FREE_NODE(MemoryGroup* memory,Node* node);
+// Debug tools
+void PRINT_NODE(Node* node,int level);
+char* SYNC(char** array);
+char* PRINT_TYPE(int type);
+// vector
+Vector* vector_init();
+void vector_add(Vector* v, void* element);
+void* vector_pop(Vector* v);
+void vector_insert(Vector* v, size_t index,void* element);
+void vector_clear(Vector* v);
+void* vector_get(Vector* v, size_t index);
+void vector_replace(Vector* v,size_t index,void* element);
+void vector_remove(Vector* v,size_t index);
+void vector_set_size(Vector* v,size_t size);
+// memory
+MemoryGroup* mem_group_init();
+void* mem_init(MemoryGroup* memory,size_t size);
+void* mem_copy(MemoryGroup* memory,void* ptr);
+void mem_free(MemoryGroup* memory,void* ptr);
+void mem_group_free(MemoryGroup* memory);
+void mem_print(MemoryGroup* memory);
+void vector_free(Vector* v);
+// error
+ErrorGroup* error_group_init(char* scope);
+void error_single_init(ErrorGroup* error,int type, int start, int size, char* message);
+void error_execute(ErrorGroup* error);
+void error_free(ErrorGroup* error);
 
 #endif

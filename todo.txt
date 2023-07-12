@@ -1,0 +1,31 @@
+- create Rust like errors 
+
+- simplify the code as much as possible in LLVM IR
+
+- "threads"
+
+- "switch" 
+
+- "async" 
+
+- implement Null value
+    - create match for nil
+
+- find best memory management
+    - borrow checker
+    - garbage collector
+    - reference counting
+
+- find a way to change the type of a variable
+    - "as" keyword 
+
+- add structs
+
+- default values for parameters in a function by position
+
+- add unassigned variables
+
+- think about macros  prob not
+    - if they are needed
+
+- make a simplifier that simplifies code to the fullest

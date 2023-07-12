@@ -2,8 +2,7 @@
 #define LEXER_H
 
 #include "../utils/include.h"
-#include "../vector/include.h"
 
-Vector* new_lexer(char* text, char* scope);
+Vector* new_lexer(ErrorGroup* error,MemoryGroup* memory,char* text, char* scope);
 
 #endif

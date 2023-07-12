@@ -1,43 +1,72 @@
-#include <locale.h>
-
 #include "../utils/include.h"
-#include "../vector/include.h"
 
-#include "../hash/include.h"
+#include "../flags/include.h"
 #include "../lexer/include.h"
 #include "../parser/include.h"
-#include "../para/include.h"
-#include "../bakcend/include.h"
+#include "../analysis/include.h"
 
-#define DEBUG_TOKEN     0
-#define DEBUG_AST       0
+#define DEBUG_LEX       0
+#define DEBUG_PARSE     1
+#define DEBUG_ANALYZE   0
+
+static Vector* lex(MemoryGroup* node_memory,char* file){
+    ErrorGroup* node_error = error_group_init(file);
+    char* text = READ_FILE(node_error,node_memory,file);
+    Vector* nodes = new_lexer(node_error,node_memory,text,file);
+    error_execute(node_error);
+#if DEBUG_LEX
+    for(int i=0;i<(int)nodes->size;i++){
+        Node* node = vector_get(nodes,i);
+        PRINT_NODE(node,0);
+    }
+#endif
+    // clean up
+    error_free(node_error);
+    return nodes;
+}
+static Vector* parse(MemoryGroup* node_memory,Vector* nodes, char* file){
+    ErrorGroup* ast_error = error_group_init(file);
+    Vector* asts = new_parser(ast_error,node_memory,nodes,EMPTY,file);
+    error_execute(ast_error);
+#if DEBUG_PARSE 
+    for(int i=0;i<(int)asts->size;i++){
+        Node* ast = vector_get(asts,i);
+        PRINT_NODE(ast,0);
+    }
+#endif
+    // clean up 
+    error_free(ast_error);    
+    return asts;
+}
+static Vector* analyze(MemoryGroup* node_memory,Vector* asts, char* file){
+    ErrorGroup* analyze_error = error_group_init(file);
+    Vector* analyzed_asts = new_analyzer(analyze_error,node_memory,asts,file);
+    error_execute(analyze_error);
+#if DEBUG_ANALYZE
+    for(int i=0;i<(int)analyzed_asts->size;i++){
+        Node* analyzed_ast = vector_get(analyzed_asts,i);
+        PRINT_NODE(analyzed_ast,0);
+    }
+#endif
+    // clean up
+    error_free(analyze_error);
+    return analyzed_asts;
+}
 
 int main(int argc, char *argv[]){
-    CompilerOptions* options = parameters(argv,argc);
- 
+    MemoryGroup* flags_memory = mem_group_init();
+    CompilerFlags* flags = flags_init(flags_memory,argv,argc);
+    // support for utf-8 aka emojis and other languages
     setlocale(LC_CTYPE, "en_US.UTF-8");
-    char* scope = options->file;
-    char* text = READ_FILE(options->file);
-    Vector* tokens = new_lexer(text,scope);
-    #if DEBUG_TOKEN == 1
-        printf("DEBUG TOKEN--------------------------------------\n");   
-        for(int i =0;i<(int)tokens->size;i++){
-            PRINT_TOKEN(vector_get(tokens,i));
-        }
-        printf("-------------------------------------------------\n");
-    #endif
-   
-    parser_init();
-    Vector* asts = parse(tokens,P_EMPTY,scope);
-    #if DEBUG_AST == 1
-        printf("DEBUG AST----------------------------------------\n");
-        for(int i=0;i<(int)asts->size;i++){
-            PRINT_AST(vector_get(asts,i),0);
-        }
-        printf("-------------------------------------------------\n");
-    #endif
-
-    backend_compile(asts,scope);
-
+    for(int i=0;i<(int)flags->files->size;i++){
+        char* file = vector_get(flags->files,i);
+        // lex the file
+        MemoryGroup* node_memory = mem_group_init();
+        Vector* nodes = lex(node_memory,file);
+        // create asts from the nodes
+        Vector* asts = parse(node_memory,nodes,file);
+        // analyze the asts
+        Vector* analyzed_asts = analyze(node_memory,asts,file);
+    }
     return 0;
 }

@@ -2,8 +2,10 @@
 #define BACKEND_H
 
 #include "../utils/include.h"
+#include "../vector/include.h"
 
-void build_backend(Command** commands, size_t size, char* scope);
+void backend_compile(Vector* asts, char* scope);
+
+
 
 #endif
-

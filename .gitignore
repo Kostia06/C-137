@@ -2,5 +2,5 @@
 .DS_store
 .git
 tools/Lang
-test
+llvm-ir
 holder
