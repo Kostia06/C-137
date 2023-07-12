@@ -50,7 +50,6 @@ Vector* new_lexer(ErrorGroup* error,MemoryGroup* memory,char* text, char* scope)
         // Get the function that corresponds to the current character type
         lexer_function function = states[lexer->node->type][type];
         function(lexer);
-    
     }
     // If the string is not closed
     if(lexer->node->type != NEW_LINE){
