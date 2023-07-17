@@ -3,10 +3,12 @@
 // helps to indeditfy which command can be left alone
 static int loners[END] = {
     [FUNCTION] = 1,
+    [STRUCT] = 1,
 };
 // helps to identify which command can have more commands in it
 static int parents[END] = {
     [FUNCTION] = 1,
+    [STRUCT] = 1,
     [IF] = 1,
     [ELSE] = 1,
     [LOOP] = 1,
@@ -31,6 +33,7 @@ static int put_int_block(Parser* parser){
 void parser_end(Parser* parser){
     Node* node = parser->current_node;
     int spacing = parser->spacing + parser->layered_up;
+    parser->cmd->size = node->index + parser->cmd->index; 
 
     if(node->type == NEW_LINE){parser->spacing = node->value.integer;}
     else if(node->type == SEMICOLON){parser->layered_up = 1;}
@@ -45,13 +48,13 @@ void parser_end(Parser* parser){
     int is_in_block = put_int_block(parser);
     if(is_loner && is_in_block){
         char* message = SYNC((char*[]){"Command cannot be in a block",NULL});
-        error_single_init(parser->error,SYNTAX_ERROR,parser->cmd->index,1,message);
+        error_single_init(parser->error,SYNTAX_ERROR,parser->cmd->index,parser->cmd->size,message);
         parser_error_skip(parser);
         goto end;
     }
     if(!is_loner && !is_in_block){
         char* message = SYNC((char*[]){"Command must be in a block",NULL});
-        error_single_init(parser->error,SYNTAX_ERROR,parser->cmd->index,1,message);
+        error_single_init(parser->error,SYNTAX_ERROR,parser->cmd->index,parser->cmd->size,message);
         parser_error_skip(parser);
         goto end;
     }

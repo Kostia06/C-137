@@ -3,11 +3,9 @@
 #include "../flags/include.h"
 #include "../lexer/include.h"
 #include "../parser/include.h"
-#include "../analysis/include.h"
 
 #define DEBUG_LEX       0
 #define DEBUG_PARSE     1
-#define DEBUG_ANALYZE   0
 
 static Vector* lex(MemoryGroup* node_memory,char* file){
     ErrorGroup* node_error = error_group_init(file);
@@ -19,6 +17,7 @@ static Vector* lex(MemoryGroup* node_memory,char* file){
         Node* node = vector_get(nodes,i);
         PRINT_NODE(node,0);
     }
+    mem_print(node_memory);
 #endif
     // clean up
     error_free(node_error);
@@ -33,24 +32,11 @@ static Vector* parse(MemoryGroup* node_memory,Vector* nodes, char* file){
         Node* ast = vector_get(asts,i);
         PRINT_NODE(ast,0);
     }
+    mem_print(node_memory);
 #endif
     // clean up 
     error_free(ast_error);    
     return asts;
-}
-static Vector* analyze(MemoryGroup* node_memory,Vector* asts, char* file){
-    ErrorGroup* analyze_error = error_group_init(file);
-    Vector* analyzed_asts = new_analyzer(analyze_error,node_memory,asts,file);
-    error_execute(analyze_error);
-#if DEBUG_ANALYZE
-    for(int i=0;i<(int)analyzed_asts->size;i++){
-        Node* analyzed_ast = vector_get(analyzed_asts,i);
-        PRINT_NODE(analyzed_ast,0);
-    }
-#endif
-    // clean up
-    error_free(analyze_error);
-    return analyzed_asts;
 }
 
 int main(int argc, char *argv[]){
@@ -65,9 +51,6 @@ int main(int argc, char *argv[]){
         Vector* nodes = lex(node_memory,file);
         // create asts from the nodes
         Vector* asts = parse(node_memory,nodes,file);
-        continue;
-        // analyze the asts
-        Vector* analyzed_asts = analyze(node_memory,asts,file);
     }
     return 0;
 }

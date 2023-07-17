@@ -21,24 +21,6 @@ char* SYNC(char** array){
     combined[length] = '\0';
     return combined;
 }
-char** ALL_SCOPES(char* scope,size_t* return_size){
-    int size = 0;
-    char** scopes = SPLIT(scope,"!~!",&size);
-    char** new_scopes = malloc(sizeof(char*)*size);
-    char current_scope[strlen(scopes[0])];
-    strcpy(current_scope, scopes[0]);
-    for(int i =0;i<size;i++){
-        char* result = malloc(sizeof(char)*strlen(current_scope)+1);
-        strcat(result,current_scope);
-        new_scopes[i] = result;
-        if(i+1<size){
-            strcat(current_scope,"!~!");
-            strcat(current_scope,scopes[i+1]);
-        }
-    }
-    *return_size = size;
-    return new_scopes;
-}
 char* READ_FILE(ErrorGroup* error,MemoryGroup* memory,char* file_name){
     FILE* file = fopen(file_name, "r");
     if(!file){
@@ -88,9 +70,9 @@ void PRINT_NODE(Node* node,int level){
     char* tab = malloc(sizeof(char)*level);
     for(int i=0;i<level;i++){tab[i] = '\t';}
 #if DEBUG_NODE == 1
-        printf("%s%d NODE:",tab,++node_count);
+        printf("%s%d NODE:%d\t: ",tab,++node_count,!node->children?-1:(int)node->children->size);
 #else
-        printf("%sNODE:",tab);
+        printf("%sNODE:%d\t: ",tab,!node->children?-1:(int)node->children->size);
 #endif
     printf("%s",PRINT_TYPE(node->type));
     if(node->type == STRING || node->type == IDENTIFIER || node->type == INTEGER || node->type == FLOAT){
@@ -116,11 +98,12 @@ static int has_memory[END] = {
 };
 // free a node
 void FREE_NODE(MemoryGroup* memory,Node* node){
-    if(!node->value.string){mem_free(memory,node->value.string);}
+    if(has_memory[node->type]){mem_free(memory,node->value.string);}
     if(node->children){
         for(int i=0;i<(int)node->children->size;i++){
             FREE_NODE(memory,vector_get(node->children,i));
         }
+        vector_set_size(node->children,0);
         vector_free(node->children);
     }
     mem_free(memory,node);
@@ -130,11 +113,12 @@ char* PRINT_TYPE(int type){
     return (char*[]){
         //Types
         "EMPTY", "INTEGER", "FLOAT", "STRING", 
-        "ARRAY","ARGUMENT",
+        "ARRAY","VECTOR","ARGUMENT",
         "IDENTIFIER",
 
         // Keywords + Command names
-        "FUNCTION", "TYPE", "EXPRESSION", "SIGN",
+        "FUNCTION", "TYPE", "EXPRESSION", "SIGN", "STRUCT",
+        "FUNCTION PARAMETER", "VARIABLE", "SCOPE",
         "DECLARATION",
         "IF", "ELSE", "LOOP",
         "BREAK", "CONTINUE", "RETURN",
@@ -144,16 +128,14 @@ char* PRINT_TYPE(int type){
         "F16","F32", "F64", "F128", 
 
         // Operators
-        "OP START",
-            "ADD", "SUB", "MUL", "DIV",
-            "EQUAL_EQUAL", "BANG_EQUAL",
-            "GREATER", "LESS", "GREATER_EQUAL", "LESS_EQUAL",
-            "OR", "AND",
+        "ADD", "SUB", "MUL", "DIV",
+        "EQUAL_EQUAL", "BANG_EQUAL",
+        "GREATER", "LESS", "GREATER_EQUAL", "LESS_EQUAL",
+        "OR", "AND",
 
-            "BITWISE AND", "BITWISE OR", 
-            "BITWISE XOR",
-            "BITWISE LEFT SHIFT", "BITWISE RIGHT SHIFT",
-        "OP END",
+        "BITWISE AND", "BITWISE OR", 
+        "BITWISE XOR",
+        "BITWISE LEFT SHIFT", "BITWISE RIGHT SHIFT",
         // Signs
         
         "ARGUMENT_START", "ARGUMENT_END",
@@ -165,6 +147,11 @@ char* PRINT_TYPE(int type){
         "S_STRING", "D_STRING", "B_STRING",
 
         "EQUAL","COMMA","COLON",
+        
+        "SINGLE_COMMENT", "SINGLE_COMMENT_START",
+        "MULTI_COMMENT","MULTI_COMMENT_START",
+
+        "SYNTAX_ERROR", "FILE_ERROR",
 
     }[type];
 }

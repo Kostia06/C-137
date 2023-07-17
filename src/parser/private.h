@@ -21,8 +21,10 @@ void parser_add_node_to_cmd(Parser* parser);
 void parser_add_cmd_to_cmds(Parser* parser);
 void parser_replace_node(Node* a,Node* b);
 Node* parser_peek(Parser* parser);
+Node* parser_loop(Parser* parser,int type, int start, int end);
 // special functions
 void parser_special_argument(Parser* parser);
+void parser_special_array(Parser* parser);
 void parser_keyword(Parser* parser);
 void parser_keyword_with_value(Parser* parser); 
 // function functions
@@ -52,7 +54,9 @@ void parser_expression_argument_end(Parser* parser);
 // special table of functions
 static function_parser special_functions[END] = {
     [ARGUMENT_START] = parser_special_argument,
+    [ARRAY_START] = parser_special_array,
     [FUNCTION] = parser_keyword,
+    [STRUCT] = parser_keyword,
 
     [IF] = parser_keyword_with_value,
     [ELSE] = parser_keyword_with_value,
@@ -76,10 +80,18 @@ static function_parser cmd_functions[END][6][END] = {
         [1] = {[ARGUMENT] = parser_function_argument,},
         [2] = {
             [COLON] = parser_type_init,
+
             [NEW_LINE] = parser_end,
             [SEMICOLON] = parser_end,
         },
         [3] = {
+            [NEW_LINE] = parser_end,
+            [SEMICOLON] = parser_end,
+        }
+    },
+    [STRUCT]= {
+        [0] = {[IDENTIFIER] = parser_add_node_to_cmd,},
+        [1] = {
             [NEW_LINE] = parser_end,
             [SEMICOLON] = parser_end,
         }
@@ -147,9 +159,14 @@ static function_parser cmd_functions[END][6][END] = {
             [F32] = parser_type_add_type,
             [F64] = parser_type_add_type,
             [F128] = parser_type_add_type,
+            [ARRAY] = parser_type_add_type,
+            [VECTOR] = parser_type_add_type,
+            [IDENTIFIER] = parser_type_add_type,
+
         },
         [1] = {
             [EXCLAMATION] = parser_type_add_value,
+            [MUL] = parser_type_add_value,
 
             [COMMA]  = parser_type_end,
             [ARGUMENT_END] = parser_type_end,

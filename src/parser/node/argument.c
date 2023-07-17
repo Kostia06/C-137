@@ -2,37 +2,7 @@
 
 // Fully develope the argument
 void parser_special_argument(Parser* parser){
-    Node* node = parser->current_node;
-    Node* child;
-    node->type = ARGUMENT;
-    node->children = vector_init();
-    // gets every node inside the argument including the end of the argument, not the start of it
-    int count = 1;
-    for(;parser->index<(int)parser->nodes->size;parser->index++){
-        child = vector_get(parser->nodes,parser->index);
-        if(child->type == NEW_LINE){
-            FREE_NODE(parser->memory,child); 
-            continue;
-        }
-        vector_add(node->children,child);
-        if(child->type == ARGUMENT_START){count++;}
-        else if(child->type == ARGUMENT_END){count--;}
-        if(count == 0){break;}
-    }
-    node->size = child->index - node->index + child->size;
-    // handles the closing bracket
-    if(count != 0){
-        char* message = SYNC((char*[]){"Expected a closing bracket, got",NULL});
-        error_single_init(parser->error,SYNTAX_ERROR,node->index,node->index+node->size,message);
-        parser_error_skip(parser);
-        return;
-    }
-    // checks if the argument is empty
-    if(node->children->size == 1){
-        child = vector_pop(node->children);
-        // clean up
-        FREE_NODE(parser->memory,child);
-    }
+    parser->current_node = parser_loop(parser,ARGUMENT,ARGUMENT_START,ARGUMENT_END); 
 }
 // handle the parameters in the argument
 void parser_function_argument(Parser* parser){

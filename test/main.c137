@@ -2,15 +2,19 @@
     This is test file 
 
 
-
 */
+struct Person
+    name: i8*
+    age: i8 = 1
 
 
-fn add(num1: i32 = 0, num2: i32 = 0): i32
-    // combine the numbers
+fn add(num1: i32 = 0, num2: i32 = 0):i32
+    if num1 > num2; return nil
     return num1 + num2
 
-fn math(num1: i32, num2: i32): i32
-    work: i1 =  num1+20 + num1 -50 > num1 - (20-50+num1)+ 20 + 5 * 3    
-    // should show an error
-    work: i32 = 10
+
+
+fn main()
+    num2: i1 =  num1+20 + num1 -50 > num1 - (20-50+num1)+ 20 + 5 * 3   
+    num3: i32 = num2 - 90 + 50
+

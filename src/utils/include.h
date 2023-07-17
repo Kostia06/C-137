@@ -15,13 +15,16 @@
 #define     CYAN "\033[1m\033[36m"
 #define     WHITE "\033[1m\033[37m"
 
+#define     HASH_SIZE 100000
+
 typedef enum{
     // Types
     EMPTY, INTEGER, FLOAT, STRING, 
-    ARRAY,ARGUMENT,
+    ARRAY,VECTOR,ARGUMENT,
     IDENTIFIER,
     // Keywords + Command names
-    FUNCTION, TYPE, EXPRESSION, SIGN,
+    FUNCTION, TYPE, EXPRESSION, SIGN, STRUCT,
+    FUNCTION_PARAMETER, VARIABLE, SCOPE,
     DECLARATION, 
     IF, ELSE, LOOP,
     BREAK, CONTINUE, RETURN,
@@ -31,17 +34,14 @@ typedef enum{
     F16,F32, F64, F128,
         
     // Operators
-    OP_START,
-        ADD, SUB, MUL, DIV,
-        EQUAL_EQUAL, BANG_EQUAL,
-        GREATER, LESS, GREATER_EQUAL, LESS_EQUAL,
-        OR, AND,
-        
-        B_AND,B_OR,
-        B_XOR,
-        B_LEFT,B_RIGHT,
-
-    OP_END,
+    ADD, SUB, MUL, DIV,
+    EQUAL_EQUAL, BANG_EQUAL,
+    GREATER, LESS, GREATER_EQUAL, LESS_EQUAL,
+    OR, AND,
+    
+    B_AND,B_OR,
+    B_XOR,
+    B_LEFT,B_RIGHT,
 
     // Signs
     
@@ -58,6 +58,8 @@ typedef enum{
     MULTI_COMMENT,MULTI_COMMENT_START,
     // Error types
     SYNTAX_ERROR, FILE_ERROR, 
+
+    
 
     END,
 } Types;
@@ -92,8 +94,18 @@ typedef struct{
     Vector* rules;
 } ErrorGroup;
 
+typedef struct{
+    void* value;
+    int type;
+} HashKey;
+
+typedef struct{
+    MemoryGroup* memory;
+    HashKey* table[HASH_SIZE];
+    Vector* value_keys;
+} Hash;
+
 // Tools
-char** ALL_SCOPES(char* scope,size_t* return_size);
 char* READ_FILE(ErrorGroup* error,MemoryGroup* memory,char* file_name);
 char* STRINGIFY(float num);
 char** SPLIT(char* string,char* split,int* return_size);
@@ -125,5 +137,12 @@ ErrorGroup* error_group_init(char* scope);
 void error_single_init(ErrorGroup* error,int type, int start, int size, char* message);
 void error_execute(ErrorGroup* error);
 void error_free(ErrorGroup* error);
+// hash
+Hash* hash_init(MemoryGroup* memory);
+int hash_id(char* key);
+HashKey* hash_get(Hash* hash,int key);
+void hash_add(Hash* hash, int key,int type, char* name, void* value);
+int hash_find(Hash* hash,int key);
+Vector* hash_get_vector(Hash* hash);
 
 #endif

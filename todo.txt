@@ -2,12 +2,6 @@
 
 - simplify the code as much as possible in LLVM IR
 
-- "threads"
-
-- "switch" 
-
-- "async" 
-
 - implement Null value
     - create match for nil
 
@@ -17,15 +11,55 @@
     - reference counting
 
 - find a way to change the type of a variable
-    - "as" keyword 
+    num1:i32      |   10:f32            
+
+- add arrays and vectors
 
 - add structs
+    struct Person
+        name: i8*
+        age: i32 = 18
+        height: f32; weight: f32
+
+- add switch
+    switch num
+        case 1; print("1")
+        case 2; print("2")
+        case 3; print("3")
+        default
+            print("default")
+
+- add enums
+    enum 
+        TOKEN_1         // 0
+        TOKEN_2 = 5     // 5
+        TOKEN_3         // 6
+        ...
+- add a way to handle nil value
+    fn func(num: i32): i32?
+        if num == 0; return nil
+        return num
+    fn main()
+        
+- add a type function
+    - "hello world".split(" ")
+    - 10.to_string()
+    - 10.to_f32()
+
+- add += -= *= /= %= &= |= ^= <<= and >>= operators
+
+- add in code error handling
+
+- add ++ and -- operators
 
 - default values for parameters in a function by position
 
 - add unassigned variables
 
-- think about macros  prob not
-    - if they are needed
+- create powerful macros like in rust
 
 - make a simplifier that simplifies code to the fullest
+
+- for loops
+
+- function methods like in julia

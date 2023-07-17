@@ -78,14 +78,7 @@ ErrorGroup* error_group_init(char* scope){
     error->scope = scope;
     return error;
 }
-
-
-
-
-
-
-
-
+// checks if there is any errors
 void error_execute(ErrorGroup* error){
     for(int i=0;i<error->rules->size;i++){
         ErrorRule* rule = vector_get(error->rules,i);
@@ -112,13 +105,7 @@ void error_execute(ErrorGroup* error){
     }
     if(error->rules->size > 0){exit(1);}
 }
-
-
-
-
-
-
-
+// add a error to the error group
 void error_single_init(ErrorGroup* error,int type, int start, int end, char* message){
     ErrorRule* rule = malloc(sizeof(ErrorRule));
     rule->type = type;
