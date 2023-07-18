@@ -20,7 +20,7 @@
 typedef enum{
     // Types
     EMPTY, INTEGER, FLOAT, STRING, 
-    ARRAY,VECTOR,ARGUMENT,
+    ARRAY,ARGUMENT,
     IDENTIFIER,
     // Keywords + Command names
     FUNCTION, TYPE, EXPRESSION, SIGN, STRUCT,

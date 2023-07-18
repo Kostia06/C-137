@@ -113,7 +113,7 @@ char* PRINT_TYPE(int type){
     return (char*[]){
         //Types
         "EMPTY", "INTEGER", "FLOAT", "STRING", 
-        "ARRAY","VECTOR","ARGUMENT",
+        "ARRAY","ARGUMENT",
         "IDENTIFIER",
 
         // Keywords + Command names

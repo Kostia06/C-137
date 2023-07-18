@@ -13,7 +13,7 @@
 - find a way to change the type of a variable
     num1:i32      |   10:f32            
 
-- add arrays and vectors
+- add arrays
 
 - add structs
     struct Person
@@ -45,6 +45,7 @@
     - "hello world".split(" ")
     - 10.to_string()
     - 10.to_f32()
+- add import file
 
 - add += -= *= /= %= &= |= ^= <<= and >>= operators
 
