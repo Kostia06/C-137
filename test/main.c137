@@ -17,4 +17,5 @@ fn add(num1:i32 = 0, num2:i32 = 0): i32; return num1+num2
 fn main()
     num1:i32 = 60-70*2+(50-20)/3
     num2:i32 = -add(50) + 50 - 60 + num1 > - num1 - num1 * 7
+    add(10,20)
 

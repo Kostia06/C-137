@@ -1,6 +1,6 @@
 #include "include.h"
 
-#define DEBUG_NODE    1
+#define DEBUG_NODE    0
 
 #if DEBUG_NODE == 1
     static int node_count;
@@ -118,8 +118,7 @@ char* PRINT_TYPE(int type){
 
         // Keywords + Command names
         "FUNCTION", "TYPE", "EXPRESSION", "SIGN", "STRUCT",
-        "FUNCTION PARAMETER", "VARIABLE", "SCOPE",
-        "DECLARATION",
+        "DECLARATION","FUNCTION CALL",
         "IF", "ELSE", "LOOP",
         "BREAK", "CONTINUE", "RETURN",
 

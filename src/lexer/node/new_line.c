@@ -5,6 +5,7 @@ void lexer_new_line_init(Lexer* lexer){
     lexer->node->type = NEW_LINE;
     lexer->node->value.integer = 0;
     lexer->node->index = lexer->index;
+    lexer->node->size = 1;
     lexer_advance(lexer);
 }
 // If newline is found in the string then add it to the node

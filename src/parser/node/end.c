@@ -22,6 +22,7 @@ static int block_holders[END][END] = {
     [STRUCT] = {
         [STRUCT] = 1,
         [FUNCTION] = 1,
+        [FUNCTION_CALL] = 1,
 
         [IF] = 1,
         [ELSE] = 1,

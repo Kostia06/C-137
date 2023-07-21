@@ -52,3 +52,28 @@ void parser_expression_argument(Parser* parser){
     parser->current_node = node;
     parser_add_node_to_cmd(parser);
 }
+// handle the argument in the block
+void parser_declaration_argument(Parser* parser){
+    Node* node = parser->current_node; 
+    Node* last = vector_get(parser->cmd->children,parser->cmd->children->size-1);
+    node->children = new_parser(parser->error,parser->memory,node->children,EXPRESSION,parser->scope);
+    // checks if everything in the argument is an expression
+    for(int i=0;i<(int)node->children->size;i++){
+        Node* parameter = vector_get(node->children,i);
+        if(parameter->type != EXPRESSION){
+            char* message = SYNC((char*[]){"Expected a EXPRESSION, got a ",PRINT_TYPE(parameter->type),NULL}); 
+            error_single_init(parser->error,SYNTAX_ERROR,parameter->index,parameter->index+parameter->size,message);
+            parser_error_skip(parser);
+            return;
+        }
+    }
+    if(!last && last->type == IDENTIFIER){
+        char* message = SYNC((char*[]){"Expected a IDENTIFIER, got a ",PRINT_TYPE(last->type),NULL});
+        error_single_init(parser->error,SYNTAX_ERROR,last->index,last->index+last->size,message);
+        parser_error_skip(parser);
+        return;
+    } 
+    if(!last->children){last->children = vector_init();} 
+    vector_add(last->children,node);
+    parser->cmd->type = FUNCTION_CALL;
+}

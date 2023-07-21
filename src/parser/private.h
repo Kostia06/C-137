@@ -41,6 +41,7 @@ void parser_end(Parser* parser);
 void parser_declaration(Parser* parser);
 void parser_declaration_end(Parser* parser);
 void parser_declaration_value(Parser* parser);
+void parser_declaration_argument(Parser* parser);
 // type functions
 void parser_type_init(Parser* parser);
 void parser_type_end(Parser* parser);
@@ -113,8 +114,12 @@ static function_parser cmd_functions[END][6][END] = {
     [RETURN] = {
         [1] = {[NEW_LINE] = parser_end,     [SEMICOLON] = parser_end,}
     },
+    [FUNCTION_CALL] = {
+        [1] = {[NEW_LINE] = parser_end,     [SEMICOLON] = parser_end,}
+    },
     [DECLARATION] = {
         [1] = {
+            [ARGUMENT] = parser_declaration_argument,
             [COLON] = parser_type_init,
             [EQUAL] = parser_declaration_value,
         },
