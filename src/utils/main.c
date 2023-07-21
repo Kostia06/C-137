@@ -128,14 +128,16 @@ char* PRINT_TYPE(int type){
         "F16","F32", "F64", "F128", 
 
         // Operators
-        "ADD", "SUB", "MUL", "DIV",
-        "EQUAL_EQUAL", "BANG_EQUAL",
-        "GREATER", "LESS", "GREATER_EQUAL", "LESS_EQUAL",
-        "OR", "AND",
+        "OP START",
+            "ADD", "SUB", "MUL", "DIV",
+            "EQUAL_EQUAL", "BANG_EQUAL",
+            "GREATER", "LESS", "GREATER_EQUAL", "LESS_EQUAL",
+            "OR", "AND",
 
-        "BITWISE AND", "BITWISE OR", 
-        "BITWISE XOR",
-        "BITWISE LEFT SHIFT", "BITWISE RIGHT SHIFT",
+            "BITWISE AND", "BITWISE OR", 
+            "BITWISE XOR",
+            "BITWISE LEFT SHIFT", "BITWISE RIGHT SHIFT",
+        "OP END",
         // Signs
         
         "ARGUMENT_START", "ARGUMENT_END",

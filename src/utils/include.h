@@ -34,15 +34,16 @@ typedef enum{
     F16,F32, F64, F128,
         
     // Operators
-    ADD, SUB, MUL, DIV,
-    EQUAL_EQUAL, BANG_EQUAL,
-    GREATER, LESS, GREATER_EQUAL, LESS_EQUAL,
-    OR, AND,
-    
-    B_AND,B_OR,
-    B_XOR,
-    B_LEFT,B_RIGHT,
-
+    OP_START,
+        ADD, SUB, MUL, DIV,
+        EQUAL_EQUAL, BANG_EQUAL,
+        GREATER, LESS, GREATER_EQUAL, LESS_EQUAL,
+        OR, AND,
+        
+        B_AND,B_OR,
+        B_XOR,
+        B_LEFT,B_RIGHT,
+    OP_END,
     // Signs
     
     ARGUMENT_START, ARGUMENT_END,

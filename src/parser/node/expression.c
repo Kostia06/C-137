@@ -42,9 +42,15 @@ void parser_expression_unary_minus(Parser* parser){
 // if the next node is plus and the current is minus then delete the current and skip to next
 void parser_expression_double_negation(Parser* parser){
     Node* next_node = parser_peek(parser);
+    Node* prev_node = vector_get(parser->cmd->children,parser->cmd->children->size-1);
     if(next_node->type == SUB){
         FREE_NODE(parser->memory,parser->current_node);
         next_node->type = ADD;
+        return;
+    }
+    if(prev_node && prev_node->type > OP_START && prev_node->type < OP_END){
+        if(!next_node->children){next_node->children = vector_init();}
+        vector_add(next_node->children,parser->current_node);
         return;
     }
     parser_expression_init(parser);
