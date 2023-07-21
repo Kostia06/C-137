@@ -21,20 +21,20 @@ Vector* new_parser(ErrorGroup* error,MemoryGroup* memory,Vector* nodes,int start
     // loop through the nodes
     while(parser->index < nodes->size){
         parser->current_node = vector_get(nodes,parser->index++);
-#if DEBUG      
-        printf("%s-%d\t",PRINT_TYPE(parser->cmd->type), (int)parser->cmd->children->size);
-        PRINT_NODE(parser->current_node,0);
-#endif
         function_parser special_function = special_functions[parser->current_node->type];
         // handle special cases
         if(special_function){special_function(parser);}
+#if DEBUG      
+    printf("%s-%d\t",PRINT_TYPE(parser->cmd->type), (int)parser->cmd->children->size);
+    PRINT_NODE(parser->current_node,0);
+#endif
         // if node is not a NULL and the command is not empty
         if(parser->current_node && parser->current_node->type != EMPTY && parser->cmd){
             function_parser function = cmd_functions[parser->cmd->type][parser->cmd->children->size][parser->current_node->type]; 
             if(function){function(parser);}
             else{
-                printf("ERROR\n");
-                char* message = SYNC((char*[]){"Unexpected token",NULL});
+                printf("ERROR\tindex:%d\tcmd_type:%s\ttype:%s\n",(int)parser->cmd->children->size,PRINT_TYPE(parser->cmd->type),PRINT_TYPE(parser->current_node->type));
+                char* message = SYNC((char*[]){"Unexpected token in ",PRINT_TYPE(parser->cmd->type),NULL});
                 error_single_init(
                     parser->error,
                     SYNTAX_ERROR,

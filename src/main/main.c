@@ -13,6 +13,7 @@ static Vector* lex(MemoryGroup* node_memory,char* file){
     Vector* nodes = new_lexer(node_error,node_memory,text,file);
     error_execute(node_error);
 #if DEBUG_LEX
+    printf("LEXER-------------------------------------------------------\n");   
     for(int i=0;i<(int)nodes->size;i++){
         Node* node = vector_get(nodes,i);
         PRINT_NODE(node,0);
@@ -28,6 +29,7 @@ static Vector* parse(MemoryGroup* node_memory,Vector* nodes, char* file){
     Vector* asts = new_parser(ast_error,node_memory,nodes,EMPTY,file);
     error_execute(ast_error);
 #if DEBUG_PARSE 
+    printf("PARSER-------------------------------------------------------\n");
     for(int i=0;i<(int)asts->size;i++){
         Node* ast = vector_get(asts,i);
         PRINT_NODE(ast,0);

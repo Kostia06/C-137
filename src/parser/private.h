@@ -21,14 +21,19 @@ void parser_add_node_to_cmd(Parser* parser);
 void parser_add_cmd_to_cmds(Parser* parser);
 void parser_replace_node(Node* a,Node* b);
 Node* parser_peek(Parser* parser);
-Node* parser_loop(Parser* parser,int type, int start, int end);
+void parser_loop(Parser* parser,Node* node,int type, int start, int end, int everything);
+void parser_free_current_node(Parser* parser);
+void parser_reset_cmd(Parser* parser);
 // special functions
 void parser_special_argument(Parser* parser);
 void parser_special_array(Parser* parser);
+void parser_special_block(Parser* parser);
 void parser_keyword(Parser* parser);
 void parser_keyword_with_value(Parser* parser); 
 // function functions
 void parser_function_argument(Parser* parser);
+// block functions
+void parser_block_end(Parser* parser);
 // empty functions
 void parser_empty_identifier(Parser* parser);
 void parser_end(Parser* parser);
@@ -51,10 +56,13 @@ void parser_expression_double_negation(Parser* parser);
 void parser_expression_end(Parser* parser);
 void parser_expression_argument(Parser* parser);
 void parser_expression_argument_end(Parser* parser);
+void parser_expression_ternary_op(Parser* parser);
 // special table of functions
 static function_parser special_functions[END] = {
     [ARGUMENT_START] = parser_special_argument,
     [ARRAY_START] = parser_special_array,
+    [BLOCK_START] = parser_special_block,
+
     [FUNCTION] = parser_keyword,
     [STRUCT] = parser_keyword,
 
@@ -84,47 +92,26 @@ static function_parser cmd_functions[END][6][END] = {
             [NEW_LINE] = parser_end,
             [SEMICOLON] = parser_end,
         },
-        [3] = {
-            [NEW_LINE] = parser_end,
-            [SEMICOLON] = parser_end,
-        }
+        [3] = {[NEW_LINE] = parser_end,     [SEMICOLON] = parser_end,}
     },
     [STRUCT]= {
         [0] = {[IDENTIFIER] = parser_add_node_to_cmd,},
-        [1] = {
-            [NEW_LINE] = parser_end,
-            [SEMICOLON] = parser_end,
-        }
+        [1] = {[NEW_LINE] = parser_end,     [SEMICOLON] = parser_end,}
     },
     [IF] = {
-        [1] = {
-            [NEW_LINE] = parser_end,
-            [SEMICOLON] = parser_end,
-        }
+        [1] = {[NEW_LINE] = parser_end,     [SEMICOLON] = parser_end,}
     },
     [BREAK] = {
-        [0] = {
-            [NEW_LINE] = parser_end,
-            [SEMICOLON] = parser_end,
-        }
+        [0] = {[NEW_LINE] = parser_end,     [SEMICOLON] = parser_end,}
     },
     [CONTINUE] = {
-        [0] = {
-            [NEW_LINE] = parser_end,
-            [SEMICOLON] = parser_end,
-        }
+        [0] = {[NEW_LINE] = parser_end,     [SEMICOLON] = parser_end,}
     },
     [ELSE] = {
-        [1] = {
-            [NEW_LINE] = parser_end,
-            [SEMICOLON] = parser_end,
-        }
+        [1] = {[NEW_LINE] = parser_end,     [SEMICOLON] = parser_end,}
     },
     [RETURN] = {
-        [1] = {
-            [NEW_LINE] = parser_end,
-            [SEMICOLON] = parser_end,
-        }
+        [1] = {[NEW_LINE] = parser_end,     [SEMICOLON] = parser_end,}
     },
     [DECLARATION] = {
         [1] = {
@@ -160,12 +147,12 @@ static function_parser cmd_functions[END][6][END] = {
             [F64] = parser_type_add_type,
             [F128] = parser_type_add_type,
             [ARRAY] = parser_type_add_type,
-            [VECTOR] = parser_type_add_type,
             [IDENTIFIER] = parser_type_add_type,
 
         },
         [1] = {
             [EXCLAMATION] = parser_type_add_value,
+            [QUESTION] = parser_type_add_value,
             [MUL] = parser_type_add_value,
 
             [COMMA]  = parser_type_end,
@@ -208,6 +195,7 @@ static function_parser cmd_functions[END][6][END] = {
 
             [ARGUMENT_END] = parser_expression_argument_end,
             [COMMA] = parser_expression_argument_end,
+
         },
         [2] = {
             [ADD] = parser_expression_unary_minus,
@@ -228,6 +216,8 @@ static function_parser cmd_functions[END][6][END] = {
 
             [ARGUMENT_END] = parser_expression_argument_end,
             [COMMA] = parser_expression_argument_end,
+
+            [QUESTION] = parser_expression_ternary_op,
         },
     },
 };

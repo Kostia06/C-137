@@ -3,18 +3,11 @@
 
 
 */
+
+
 struct Person
     name: i8*
     age: i8 = 1
 
 
-fn add(num1: i32 = 0, num2: i32 = 0):i32
-    if num1 > num2; return nil
-    return num1 + num2
-
-
-
-fn main()
-    num2: i1 =  num1+20 + num1 -50 > num1 - (20-50+num1)+ 20 + 5 * 3   
-    num3: i32 = num2 - 90 + 50
-    result: i8 = num2 > num3 : 10 ? 11
+fn add(): i32

@@ -20,7 +20,7 @@
 typedef enum{
     // Types
     EMPTY, INTEGER, FLOAT, STRING, 
-    ARRAY,ARGUMENT,
+    ARRAY,ARGUMENT,BLOCK,
     IDENTIFIER,
     // Keywords + Command names
     FUNCTION, TYPE, EXPRESSION, SIGN, STRUCT,
@@ -47,6 +47,7 @@ typedef enum{
     
     ARGUMENT_START, ARGUMENT_END,
     ARRAY_START, ARRAY_END,
+    BLOCK_START, BLOCK_END,
     
     NEW_LINE, SEMICOLON,
     QUESTION, EXCLAMATION,
@@ -118,6 +119,7 @@ char* PRINT_TYPE(int type);
 Vector* vector_init();
 void vector_add(Vector* v, void* element);
 void* vector_pop(Vector* v);
+void* vector_pop_by_index(Vector* v,int index);
 void vector_insert(Vector* v, size_t index,void* element);
 void vector_clear(Vector* v);
 void* vector_get(Vector* v, size_t index);

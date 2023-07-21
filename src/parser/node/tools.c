@@ -4,12 +4,17 @@
 void parser_add_node_to_cmd(Parser* parser){
     vector_add(parser->cmd->children,parser->current_node);
 }
-// add the current command to the commands
-void parser_add_cmd_to_cmds(Parser* parser){
-    vector_add(parser->cmds,parser->cmd);
+// reset the current cmd to the starter type
+void parser_reset_cmd(Parser* parser){
     parser->cmd = mem_init(parser->memory,sizeof(Node));
     parser->cmd->type = parser->starter_type;
     parser->cmd->children = vector_init();
+    parser->hold_cmd = NULL;
+}
+// add the current command to the commands
+void parser_add_cmd_to_cmds(Parser* parser){
+    vector_add(parser->cmds,parser->cmd);
+    parser_reset_cmd(parser);
 }
 // peak at the next node
 Node* parser_peek(Parser* parser){
@@ -22,21 +27,24 @@ void parser_replace_node(Node* a,Node* b){
     memcpy(a,b,sizeof(Node));
     memcpy(b,&temp,sizeof(Node));
 }
-// Loop through the nodes until you find end 
-Node* parser_loop(Parser* parser,int type, int start, int end){
-    Node* node = mem_init(parser->memory,sizeof(Node));
-    node->type = type;
-    node->index = parser->current_node->index;
-    node->children = vector_init();
+// Free current node
+void parser_free_current_node(Parser* parser){
     FREE_NODE(parser->memory,parser->current_node);
+}
+// Loop through the nodes until you find end 
+void parser_loop(Parser* parser,Node* node,int type, int start, int end, int everything){
+    node->type = type;
+    node->children = vector_init();
     Node* child;
     // gets every node inside the argument including the end of the argument, not the start of it
     int count = 1;
-    for(;parser->index<(int)parser->nodes->size;parser->index++){
-        child = vector_get(parser->nodes,parser->index);
+    while(count && parser->index < (int)parser->nodes->size){
+        child = vector_pop_by_index(parser->nodes,parser->index);
         if(child->type == NEW_LINE){
-            FREE_NODE(parser->memory,child); 
-            continue;
+            if(!everything){
+                FREE_NODE(parser->memory,child); 
+                continue;
+            }
         }
         vector_add(node->children,child);
         if(child->type == start){count++;}
@@ -46,10 +54,10 @@ Node* parser_loop(Parser* parser,int type, int start, int end){
     node->size = child->index - node->index + child->size;
     // handles the closing bracket
     if(count != 0){
-        char* message = SYNC((char*[]){"Expected a closing bracket, got",NULL});
+        char* message = SYNC((char*[]){"Expected a closing ",PRINT_TYPE(end),NULL});
         error_single_init(parser->error,SYNTAX_ERROR,node->index,node->index+node->size,message);
         parser_error_skip(parser);
-        return NULL;
+        return;
     }
     // checks if the argument is empty
     if(node->children->size == 1){
@@ -57,6 +65,5 @@ Node* parser_loop(Parser* parser,int type, int start, int end){
         // clean up
         FREE_NODE(parser->memory,child);
     }
-    return node;
 }
 

@@ -49,6 +49,10 @@ void parser_expression_double_negation(Parser* parser){
     }
     parser_expression_init(parser);
 }
+// this is a conditional expression
+void parser_expression_ternary_op(Parser* parser){
+    //parser->current_node = parser_loop(parser,ARGUMENT,QUESTION,COLON);
+}
 
 static void expression_top(Parser* parser, Node* value, Node* op){
     vector_add(op->children,value);

@@ -10,7 +10,7 @@ void parser_type_init(Parser* parser){
     // clean up
     FREE_NODE(parser->memory,parser->current_node);
 }
-// the of the new type
+// the end of the new type
 void parser_type_end(Parser* parser){
     parser->current_node = parser->cmd;
     parser->cmd = parser->hold_cmd;

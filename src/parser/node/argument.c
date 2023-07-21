@@ -1,8 +1,8 @@
 #include "../private.h"
 
-// Fully develope the argument
+// Capture the argument
 void parser_special_argument(Parser* parser){
-    parser->current_node = parser_loop(parser,ARGUMENT,ARGUMENT_START,ARGUMENT_END); 
+    parser_loop(parser,parser->current_node,ARGUMENT,ARGUMENT_START,ARGUMENT_END,0);
 }
 // handle the parameters in the argument
 void parser_function_argument(Parser* parser){

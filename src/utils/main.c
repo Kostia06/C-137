@@ -1,6 +1,6 @@
 #include "include.h"
 
-#define DEBUG_NODE    0 
+#define DEBUG_NODE    1
 
 #if DEBUG_NODE == 1
     static int node_count;
@@ -70,9 +70,9 @@ void PRINT_NODE(Node* node,int level){
     char* tab = malloc(sizeof(char)*level);
     for(int i=0;i<level;i++){tab[i] = '\t';}
 #if DEBUG_NODE == 1
-        printf("%s%d NODE:%d\t: ",tab,++node_count,!node->children?-1:(int)node->children->size);
+        printf("%s%d NODE:%d:",tab,++node_count,!node->children?-1:(int)node->children->size);
 #else
-        printf("%sNODE:%d\t: ",tab,!node->children?-1:(int)node->children->size);
+        printf("%sNODE:%d:",tab,!node->children?-1:(int)node->children->size);
 #endif
     printf("%s",PRINT_TYPE(node->type));
     if(node->type == STRING || node->type == IDENTIFIER || node->type == INTEGER || node->type == FLOAT){
@@ -113,7 +113,7 @@ char* PRINT_TYPE(int type){
     return (char*[]){
         //Types
         "EMPTY", "INTEGER", "FLOAT", "STRING", 
-        "ARRAY","ARGUMENT",
+        "ARRAY","ARGUMENT","BLOCK",
         "IDENTIFIER",
 
         // Keywords + Command names
@@ -140,6 +140,7 @@ char* PRINT_TYPE(int type){
         
         "ARGUMENT_START", "ARGUMENT_END",
         "ARRAY_START", "ARRAY_END",
+        "BLOCK_START", "BLOCK_END",
 
         "NEW_LINE", "SEMICOLON",
         "QUESTION", "EXCLAMATION",

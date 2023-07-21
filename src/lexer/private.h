@@ -55,7 +55,7 @@ static Keyword keywords[] = {
 };
 
 // IMPORTANT: the order of the signs should be from the longest to the shortest
-#define SIGN_COUNT 32
+#define SIGN_COUNT 34
 #define LONGEST_SIGN 2
 static Keyword signs[] = {
     //2
@@ -74,6 +74,7 @@ static Keyword signs[] = {
 
     {"(",ARGUMENT_START},{")",ARGUMENT_END},
     {"[",ARRAY_START},{"]",ARRAY_END},
+    {"{",BLOCK_START},{"}",BLOCK_END},
     {",",COMMA},
 
     {"&",B_AND},{"|",B_OR},

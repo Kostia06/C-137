@@ -1,7 +1,7 @@
 #include "../private.h"
 
-// Fully develope the argument
+// Capture the array
 void parser_special_array(Parser* parser){
-    parser->current_node = parser_loop(parser,ARGUMENT,ARGUMENT_START,ARRAY_END); 
+    parser_loop(parser,parser->current_node,ARGUMENT,ARGUMENT_START,ARRAY_END,0); 
 }
 

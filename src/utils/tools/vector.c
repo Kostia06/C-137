@@ -26,6 +26,16 @@ void* vector_pop(Vector* v){
     }
     return element;
 }
+void* vector_pop_by_index(Vector* v,int index){
+    if(index >= v->size){return NULL;}
+    void* element = v->data[index];
+    memmove(&v->data[index], &v->data[index+1], (v->size - index) * sizeof(void*));
+    if(--v->size < v->capacity / 4){
+        v->capacity /= 2;
+        v->data = realloc(v->data, v->capacity * sizeof(void*));
+    }
+    return element;
+}
 void* vector_get(Vector* v, size_t index){
     if(index >= v->size){return NULL;}
     return v->data[index];

@@ -64,3 +64,5 @@
 - for loops
 
 - function methods like in julia
+
+- add the return simplification like in rust
