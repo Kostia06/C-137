@@ -21,7 +21,7 @@ void lexer_new_identifier(Lexer* lexer){
     lexer->node->type = IDENTIFIER;   
     lexer->node->index = lexer->index;
     lexer->node->size = 1;
-    lexer->node->value.string = mem_init(lexer->memory,sizeof(char)*2);
+    lexer->node->value.string = mem_init(lexer->compiler->memory,sizeof(char)*2);
     lexer->node->value.string[0] = lexer->current_char;
     lexer_advance(lexer);
 }
@@ -42,7 +42,7 @@ void lexer_check_identifier(Lexer* lexer){
     for(int i = 0;i < KEYWORD_COUNT;i++){
         if(strcmp(lexer->node->value.string,keywords[i].name) == 0){
             lexer->node->type = keywords[i].type;
-            mem_free(lexer->memory,lexer->node->value.string);
+            mem_free(lexer->compiler->memory,lexer->node->value.string);
             break;
         }
     }

@@ -9,7 +9,7 @@ Node* new_empty_node(MemoryGroup* memory){
 // Add the current node to the vector and create a new node
 void lexer_reset_node(Lexer* lexer){
     vector_add(lexer->nodes,lexer->node);
-    lexer->node = new_empty_node(lexer->memory);
+    lexer->node = new_empty_node(lexer->compiler->memory);
 }
 // Gets the next character from the file
 void lexer_advance(Lexer* lexer){
@@ -24,21 +24,18 @@ void lexer_back(Lexer* lexer){
 char lexer_peek(Lexer* lexer){
     return lexer->text[lexer->index+1]; 
 }
-Vector* new_lexer(ErrorGroup* error,MemoryGroup* memory,char* text, char* scope){
+Vector* new_lexer(Compiler* compiler,char* text){
     if(text == NULL){return NULL;}
-    Lexer* lexer = mem_init(memory,sizeof(Lexer));
-    // Memory & error group
-    lexer->memory = memory;
-    lexer->error = error;
+    Lexer* lexer = mem_init(compiler->memory,sizeof(Lexer));
+    lexer->compiler = compiler;
     // Vector of nodes and current node
     lexer->nodes = vector_init();
-    lexer->node = new_empty_node(memory);
+    lexer->node = new_empty_node(compiler->memory);
     lexer->node->type = NEW_LINE;
     // Get the file
     lexer->text = text;
     lexer->text_size = strlen(text);
 
-    lexer->scope = scope;
     lexer->current_char = lexer->text[0];
     
     while(lexer->index < lexer->text_size){
@@ -54,14 +51,20 @@ Vector* new_lexer(ErrorGroup* error,MemoryGroup* memory,char* text, char* scope)
     // If the string is not closed
     if(lexer->node->type != NEW_LINE){
         char* message = SYNC((char*[]){"String not closed",NULL});
-        error_single_init(lexer->error,SYNTAX_ERROR,lexer->node->index,lexer->node->index+1,message);
+        error_single_init(
+            lexer->compiler->error,
+            SYNTAX_ERROR,
+            lexer->node->index,
+            lexer->node->index+1,
+            message
+        );
     }
     // get the last node
     lexer_reset_node(lexer);
 
     Vector* nodes = lexer->nodes;
-    mem_free(memory,lexer->node);
-    mem_free(memory,lexer->text);
-    mem_free(memory,lexer);
+    mem_free(compiler->memory,lexer->node);
+    mem_free(compiler->memory,lexer->text);
+    mem_free(compiler->memory,lexer);
     return nodes;
 }

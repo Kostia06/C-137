@@ -4,14 +4,12 @@
 #include "include.h"
 
 typedef struct{
-    ErrorGroup* error;
-    MemoryGroup*memory;
+    Compiler* compiler;
     Vector* nodes, *cmds, *layers;
     Node* current_node, *cmd;
     Node* hold_cmd, *hold_op;
     int spacing, index, layered_up;
     int starter_type, negative;
-    char* scope;
 }Parser;
 
 typedef void(*function_parser)(Parser* parser);
@@ -69,6 +67,7 @@ static function_parser special_functions[END] = {
 
     [IF] = parser_keyword_with_value,
     [ELSE] = parser_keyword_with_value,
+    [LOOP] = parser_keyword_with_value,
     [RETURN] = parser_keyword_with_value,
 
     [CONTINUE] = parser_keyword,
@@ -102,14 +101,17 @@ static function_parser cmd_functions[END][6][END] = {
     [IF] = {
         [1] = {[NEW_LINE] = parser_end,     [SEMICOLON] = parser_end,}
     },
+    [ELSE] = {
+        [1] = {[NEW_LINE] = parser_end,     [SEMICOLON] = parser_end,}
+    },
+    [LOOP] = {
+        [1] = {[NEW_LINE] = parser_end,     [SEMICOLON] = parser_end,}
+    },
     [BREAK] = {
         [0] = {[NEW_LINE] = parser_end,     [SEMICOLON] = parser_end,}
     },
     [CONTINUE] = {
         [0] = {[NEW_LINE] = parser_end,     [SEMICOLON] = parser_end,}
-    },
-    [ELSE] = {
-        [1] = {[NEW_LINE] = parser_end,     [SEMICOLON] = parser_end,}
     },
     [RETURN] = {
         [1] = {[NEW_LINE] = parser_end,     [SEMICOLON] = parser_end,}

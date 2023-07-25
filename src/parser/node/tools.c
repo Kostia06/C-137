@@ -6,7 +6,7 @@ void parser_add_node_to_cmd(Parser* parser){
 }
 // reset the current cmd to the starter type
 void parser_reset_cmd(Parser* parser){
-    parser->cmd = mem_init(parser->memory,sizeof(Node));
+    parser->cmd = mem_init(parser->compiler->memory,sizeof(Node));
     parser->cmd->type = parser->starter_type;
     parser->cmd->children = vector_init();
     parser->hold_cmd = NULL;
@@ -29,7 +29,7 @@ void parser_replace_node(Node* a,Node* b){
 }
 // Free current node
 void parser_free_current_node(Parser* parser){
-    FREE_NODE(parser->memory,parser->current_node);
+    FREE_NODE(parser->compiler->memory,parser->current_node);
 }
 // Loop through the nodes until you find end 
 void parser_loop(Parser* parser,Node* node,int type, int start, int end, int everything){
@@ -42,7 +42,7 @@ void parser_loop(Parser* parser,Node* node,int type, int start, int end, int eve
         child = vector_pop_by_index(parser->nodes,parser->index);
         if(child->type == NEW_LINE){
             if(!everything){
-                FREE_NODE(parser->memory,child); 
+                FREE_NODE(parser->compiler->memory,child); 
                 continue;
             }
         }
@@ -55,7 +55,7 @@ void parser_loop(Parser* parser,Node* node,int type, int start, int end, int eve
     // handles the closing bracket
     if(count != 0){
         char* message = SYNC((char*[]){"Expected a closing ",PRINT_TYPE(end),NULL});
-        error_single_init(parser->error,SYNTAX_ERROR,node->index,node->index+node->size,message);
+        error_single_init(parser->compiler->error,SYNTAX_ERROR,node->index,node->index+node->size,message);
         parser_error_skip(parser);
         return;
     }
@@ -63,7 +63,7 @@ void parser_loop(Parser* parser,Node* node,int type, int start, int end, int eve
     if(node->children->size == 1){
         child = vector_pop(node->children);
         // clean up
-        FREE_NODE(parser->memory,child);
+        FREE_NODE(parser->compiler->memory,child);
     }
 }
 

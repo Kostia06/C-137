@@ -55,7 +55,7 @@ static int put_int_block(Parser* parser){
             if(block_holders[block->type][parser->cmd->type]){
                 char* message = SYNC((char*[]){PRINT_TYPE(parser->cmd->type)," cannot be in ",PRINT_TYPE(block->type),NULL});
                 error_single_init(
-                    parser->error,
+                    parser->compiler->error,
                     SYNTAX_ERROR,
                     parser->cmd->index,
                     parser->cmd->index+parser->cmd->size,
@@ -80,7 +80,7 @@ void parser_end(Parser* parser){
     if(node->type == NEW_LINE){parser->spacing = node->value.integer;}
     else if(node->type == SEMICOLON){parser->layered_up = 1;}
     // clean up
-    FREE_NODE(parser->memory,node);
+    FREE_NODE(parser->compiler->memory,node);
     if(parser->cmd->type == EMPTY){return;}
     parser->cmd->value.integer = spacing;
     
@@ -90,7 +90,7 @@ void parser_end(Parser* parser){
     if(!is_loner && !is_in_block){
         char* message = SYNC((char*[]){PRINT_TYPE(parser->cmd->type)," must be in a block",NULL});
         error_single_init(
-            parser->error,
+            parser->compiler->error,
             SYNTAX_ERROR,
             parser->cmd->index,
             parser->cmd->index+parser->cmd->size,
@@ -100,7 +100,7 @@ void parser_end(Parser* parser){
         return;
     }
     if(is_parent){
-        Node* block = mem_init(parser->memory,sizeof(Node));
+        Node* block = mem_init(parser->compiler->memory,sizeof(Node));
         block->type = BLOCK;
         block->children = vector_init();
         vector_add(parser->cmd->children,block);

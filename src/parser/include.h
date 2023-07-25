@@ -3,7 +3,7 @@
 
 #include "../utils/include.h"
 
-Vector* new_parser(ErrorGroup* error,MemoryGroup* memory,Vector* nodes,int starter_type,char* scope);
+Vector* new_parser(Compiler* compiler,Vector* nodes,int starter_type);
 
 
 #endif

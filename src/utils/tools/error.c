@@ -72,10 +72,9 @@ static char** split_lines(char* str,char* split){
     array[size] = NULL;
     return array;
 }
-ErrorGroup* error_group_init(char* scope){
+ErrorGroup* error_group_init(){
     ErrorGroup* error = malloc(sizeof(ErrorGroup));
     error->rules = vector_init();
-    error->scope = scope;
     return error;
 }
 // checks if there is any errors
@@ -116,6 +115,4 @@ void error_single_init(ErrorGroup* error,int type, int start, int end, char* mes
 }
 void error_free(ErrorGroup* error){
     vector_clear(error->rules);
-    free(error->rules);
-    free(error);
 }

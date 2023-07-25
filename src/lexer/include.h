@@ -3,6 +3,6 @@
 
 #include "../utils/include.h"
 
-Vector* new_lexer(ErrorGroup* error,MemoryGroup* memory,char* text, char* scope);
+Vector* new_lexer(Compiler* compiler,char* text);
 
 #endif

@@ -26,7 +26,7 @@ static int lexer_get_sign_type(Lexer* lexer){
 void lexer_new_sign(Lexer* lexer){
     lexer->node->type = SIGN;
     lexer->node->index = lexer->index;
-    lexer->node->value.string = mem_init(lexer->memory,sizeof(char)*2);
+    lexer->node->value.string = mem_init(lexer->compiler->memory,sizeof(char)*2);
 }
 // Add a char to the sign and check if it is a sign
 void lexer_add_char_to_sign(Lexer* lexer){
@@ -40,12 +40,18 @@ void lexer_add_char_to_sign(Lexer* lexer){
         int type = lexer_get_sign_type(lexer);
         if(i == 0 && type == EMPTY){
             char* message = SYNC((char*[]){"Invalid sign",NULL});
-            error_single_init(lexer->error,SYNTAX_ERROR,lexer->node->index,lexer->node->index+1,message);
+            error_single_init(
+                lexer->compiler->error,
+                SYNTAX_ERROR,
+                lexer->node->index,
+                lexer->node->index+1,
+                message
+            );
         }
         else if(type != EMPTY){
             lexer->node->type = type;
             lexer->node->size = i;
-            mem_free(lexer->memory,lexer->node->value.string);
+            mem_free(lexer->compiler->memory,lexer->node->value.string);
             int special = lexer_special_sign(lexer);
             if(!special){lexer_reset_node(lexer);}
             return;

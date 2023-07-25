@@ -4,7 +4,7 @@
 void lexer_new_string(Lexer* lexer){
     char c = lexer->current_char;
     lexer->node->type = c == '`' ? B_STRING : c == '"' ? D_STRING : S_STRING;
-    lexer->node->value.string = mem_init(lexer->memory,sizeof(char)*2);
+    lexer->node->value.string = mem_init(lexer->compiler->memory,sizeof(char)*2);
     lexer->node->index = lexer->index;
     lexer->node->size = 0;
     lexer_advance(lexer);    
@@ -25,7 +25,13 @@ void lexer_single_string_add_char(Lexer* lexer){
     }
     if(lexer->node->size == 1){
         char* message = SYNC((char*[]){"Invalid single string",NULL});
-        error_single_init(lexer->error,SYNTAX_ERROR,lexer->index,lexer->index+1,message);
+        error_single_init(
+            lexer->compiler->error,
+            SYNTAX_ERROR,
+            lexer->index,
+            lexer->index+1,
+            message
+        );
     }
     lexer_add_char(lexer);
 }

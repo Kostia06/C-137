@@ -3,21 +3,19 @@
 
 #define DEBUG   0
 
-Vector* new_parser(ErrorGroup* error,MemoryGroup* memory,Vector* nodes,int starter_type,char* scope){
+Vector* new_parser(Compiler* compiler,Vector* nodes,int starter_type){
     // set up for the parser
-    Parser* parser = mem_init(memory,sizeof(Parser));
+    Parser* parser = mem_init(compiler->memory,sizeof(Parser));
     // the current command set up
-    parser->cmd = mem_init(memory,sizeof(Node));
+    parser->cmd = mem_init(compiler->memory,sizeof(Node));
     parser->cmd->children = vector_init();
     parser->cmd->type = starter_type;
     parser->starter_type = starter_type;
 
+    parser->compiler = compiler;
     parser->cmds = vector_init();
     parser->layers = vector_init();
     parser->nodes = nodes;  
-    parser->error = error;
-    parser->memory = memory;
-    parser->scope = scope;
     // loop through the nodes
     while(parser->index < nodes->size){
         parser->current_node = vector_get(nodes,parser->index++);
@@ -36,7 +34,7 @@ Vector* new_parser(ErrorGroup* error,MemoryGroup* memory,Vector* nodes,int start
                 printf("ERROR\tindex:%d\tcmd_type:%s\ttype:%s\n",(int)parser->cmd->children->size,PRINT_TYPE(parser->cmd->type),PRINT_TYPE(parser->current_node->type));
                 char* message = SYNC((char*[]){"Unexpected token in ",PRINT_TYPE(parser->cmd->type),NULL});
                 error_single_init(
-                    parser->error,
+                    parser->compiler->error,
                     SYNTAX_ERROR,
                     parser->current_node->index,
                     parser->current_node->index+parser->current_node->size,
@@ -49,7 +47,7 @@ Vector* new_parser(ErrorGroup* error,MemoryGroup* memory,Vector* nodes,int start
     }
     Vector* cmds = parser->cmds;
     free(parser->layers);
-    mem_free(memory,parser->cmd);
-    mem_free(memory,parser);
+    mem_free(parser->compiler->memory,parser->cmd);
+    mem_free(parser->compiler->memory,parser);
     return cmds;
 }

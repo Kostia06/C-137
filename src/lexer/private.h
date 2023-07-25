@@ -4,12 +4,11 @@
 #include "../utils/include.h"
 
 typedef struct{
+    Compiler* compiler;
     Node *node;
-    char current_char,*text,*scope;
+    char current_char,*text;
     size_t node_size,index,text_size;
     Vector* nodes;
-    MemoryGroup* memory;
-    ErrorGroup* error;
 }Lexer;
 typedef void(*lexer_function)(Lexer*);
 typedef struct{

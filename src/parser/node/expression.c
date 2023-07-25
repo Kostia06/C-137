@@ -25,7 +25,7 @@ void parser_expression_add_negative(Parser* parser){
         }
         default:{
             char* message = SYNC((char*[]){"Invalid negative",NULL});
-            error_single_init(parser->error,SYNTAX_ERROR,parser->index,parser->index+1,message);
+            error_single_init(parser->compiler->error,SYNTAX_ERROR,parser->index,parser->index+1,message);
             parser_error_skip(parser);
         }
     } 
@@ -34,7 +34,7 @@ void parser_expression_add_negative(Parser* parser){
 void parser_expression_unary_minus(Parser* parser){
     Node* next_node = parser_peek(parser);
     if(next_node->type == SUB){
-        FREE_NODE(parser->memory,parser->current_node);
+        FREE_NODE(parser->compiler->memory,parser->current_node);
         return;
     }
     parser_expression_init(parser);
@@ -44,7 +44,7 @@ void parser_expression_double_negation(Parser* parser){
     Node* next_node = parser_peek(parser);
     Node* prev_node = vector_get(parser->cmd->children,parser->cmd->children->size-1);
     if(next_node->type == SUB){
-        FREE_NODE(parser->memory,parser->current_node);
+        FREE_NODE(parser->compiler->memory,parser->current_node);
         next_node->type = ADD;
         return;
     }
@@ -128,6 +128,6 @@ void parser_expression_argument_end(Parser* parser){
         }
         parser_add_cmd_to_cmds(parser);
         // clean up
-        FREE_NODE(parser->memory,parser->current_node);
+        FREE_NODE(parser->compiler->memory,parser->current_node);
     }
 }

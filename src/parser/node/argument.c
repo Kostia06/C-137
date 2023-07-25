@@ -7,12 +7,12 @@ void parser_special_argument(Parser* parser){
 // handle the parameters in the argument
 void parser_function_argument(Parser* parser){
     Node* node = parser->current_node;
-    node->children = new_parser(parser->error,parser->memory,node->children,EMPTY,parser->scope);
+    node->children = new_parser(parser->compiler,node->children,EMPTY);
     for(int i=0;i<(int)node->children->size;i++){
         Node* parameter = vector_get(node->children,i);
         if(parameter->type != DECLARATION){
             char* message = SYNC((char*[]){"Expected a parameter, got a ",PRINT_TYPE(parameter->type),NULL}); 
-            error_single_init(parser->error,SYNTAX_ERROR,parameter->index,parameter->index+parameter->size,message);
+            error_single_init(parser->compiler->error,SYNTAX_ERROR,parameter->index,parameter->index+parameter->size,message);
             parser_error_skip(parser);
             return;
         }
@@ -23,13 +23,13 @@ void parser_function_argument(Parser* parser){
 void parser_expression_argument(Parser* parser){
     Node* node = parser->current_node; 
     Node* last = vector_get(parser->cmd->children,parser->cmd->children->size-1);
-    node->children = new_parser(parser->error,parser->memory,node->children,EXPRESSION,parser->scope);
+    node->children = new_parser(parser->compiler,node->children,EXPRESSION);
     // checks if everything in the argument is an expression
     for(int i=0;i<(int)node->children->size;i++){
         Node* parameter = vector_get(node->children,i);
         if(parameter->type != EXPRESSION){
             char* message = SYNC((char*[]){"Expected a EXPRESSION, got a ",PRINT_TYPE(parameter->type),NULL}); 
-            error_single_init(parser->error,SYNTAX_ERROR,parameter->index,parameter->index+parameter->size,message);
+            error_single_init(parser->compiler->error,SYNTAX_ERROR,parameter->index,parameter->index+parameter->size,message);
             parser_error_skip(parser);
             return;
         }
@@ -41,14 +41,14 @@ void parser_expression_argument(Parser* parser){
     }
     if(node->children->size != 1){
         char* message = SYNC((char*[]){"Expected one expression, got",NULL});
-        error_single_init(parser->error,SYNTAX_ERROR,node->index,node->index+node->size,message);
+        error_single_init(parser->compiler->error,SYNTAX_ERROR,node->index,node->index+node->size,message);
         parser_error_skip(parser);
         return;
     }
     parser->current_node = vector_pop(node->children);
-    FREE_NODE(parser->memory,node);
+    FREE_NODE(parser->compiler->memory,node);
     node = vector_pop(parser->current_node->children);
-    FREE_NODE(parser->memory,parser->current_node);
+    FREE_NODE(parser->compiler->memory,parser->current_node);
     parser->current_node = node;
     parser_add_node_to_cmd(parser);
 }
@@ -56,20 +56,20 @@ void parser_expression_argument(Parser* parser){
 void parser_declaration_argument(Parser* parser){
     Node* node = parser->current_node; 
     Node* last = vector_get(parser->cmd->children,parser->cmd->children->size-1);
-    node->children = new_parser(parser->error,parser->memory,node->children,EXPRESSION,parser->scope);
+    node->children = new_parser(parser->compiler,node->children,EXPRESSION);
     // checks if everything in the argument is an expression
     for(int i=0;i<(int)node->children->size;i++){
         Node* parameter = vector_get(node->children,i);
         if(parameter->type != EXPRESSION){
             char* message = SYNC((char*[]){"Expected a EXPRESSION, got a ",PRINT_TYPE(parameter->type),NULL}); 
-            error_single_init(parser->error,SYNTAX_ERROR,parameter->index,parameter->index+parameter->size,message);
+            error_single_init(parser->compiler->error,SYNTAX_ERROR,parameter->index,parameter->index+parameter->size,message);
             parser_error_skip(parser);
             return;
         }
     }
     if(!last && last->type == IDENTIFIER){
         char* message = SYNC((char*[]){"Expected a IDENTIFIER, got a ",PRINT_TYPE(last->type),NULL});
-        error_single_init(parser->error,SYNTAX_ERROR,last->index,last->index+last->size,message);
+        error_single_init(parser->compiler->error,SYNTAX_ERROR,last->index,last->index+last->size,message);
         parser_error_skip(parser);
         return;
     } 

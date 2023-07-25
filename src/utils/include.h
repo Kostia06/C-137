@@ -106,6 +106,13 @@ typedef struct{
     Vector* value_keys;
 } Hash;
 
+typedef struct{
+    ErrorGroup* error;
+    MemoryGroup* memory;
+    Vector* scopes;
+    char* scope;
+} Compiler;
+
 // Tools
 char* READ_FILE(ErrorGroup* error,MemoryGroup* memory,char* file_name);
 char* STRINGIFY(float num);
@@ -135,7 +142,7 @@ void mem_group_free(MemoryGroup* memory);
 void mem_print(MemoryGroup* memory);
 void vector_free(Vector* v);
 // error
-ErrorGroup* error_group_init(char* scope);
+ErrorGroup* error_group_init();
 void error_single_init(ErrorGroup* error,int type, int start, int size, char* message);
 void error_execute(ErrorGroup* error);
 void error_free(ErrorGroup* error);

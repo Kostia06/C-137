@@ -7,7 +7,7 @@ typedef struct{
     Vector* files;
 }CompilerFlags;
 
-CompilerFlags* flags_init(MemoryGroup* memory,char** args, int size);
+CompilerFlags* flags_init(char** args, int size);
 
 
 
