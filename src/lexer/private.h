@@ -43,11 +43,11 @@ static int characters[256] = {
 	LT_ALPHA, LT_ALPHA, LT_ALPHA, LT_ALPHA, LT_ALPHA, LT_ALPHA, LT_ALPHA, LT_ALPHA,
 	LT_ALPHA, LT_ALPHA, LT_ALPHA, LT_SIGN, LT_SIGN ,LT_SIGN, LT_SIGN,0,
 };
-#define KEYWORD_COUNT 22 
+#define KEYWORD_COUNT 22
 static Keyword keywords[] = {
     {"fn",FUNCTION},{"struct",STRUCT},
-    {"if",IF},{"else",ELSE},{"loop",LOOP},
-    {"arr",ARRAY},
+    {"if",IF},{"elif",ELIF},{"else",ELSE},
+    {"loop",LOOP},
     {"break",BREAK},{"continue",CONTINUE},{"return",RETURN},
     {"i1",I1},{"i8",I8},{"i16",I16},{"i32",I32},{"i64",I64},{"i128",I128},
     {"f16",F16},{"f32",F32},{"f64",F64},{"f128",F128},

@@ -56,25 +56,10 @@ static char* get_error(char* file_name,char* error_color, int start, int end,int
     return error;
 
 }
-// split the lines
-static char** split_lines(char* str,char* split){
-    char* string = malloc(sizeof(char)*strlen(string)+1);
-    strcat(string,str);
-    char* token = strtok(string,split);
-    char** array = malloc(sizeof(char*));
-    int size = 0;
-    while(token != NULL){
-        array = realloc(array,sizeof(char*)*(size+1));
-        array[size++] = token;
-        token = strtok(NULL,split);
-    }
-    array = realloc(array,sizeof(char*)*(size+1));
-    array[size] = NULL;
-    return array;
-}
-ErrorGroup* error_group_init(MemoryGroup* memory){
+ErrorGroup* error_group_init(Compiler* compiler){
     ErrorGroup* error = malloc(sizeof(ErrorGroup)); 
-    error->rules = vector_init(memory);
+    error->rules = vector_init(compiler->memory);
+    error->scope = compiler->scope;
     return error;
 }
 // checks if there is any errors

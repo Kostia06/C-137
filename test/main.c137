@@ -1,17 +1,24 @@
 /*
-    This is test file 
-
-
+    This is test file
+    by Kos
 */
-
 
 struct Person
     name: i8*
-    age: i8 = 1
+    age: i8 = 1       
+    
+
+
+
+
 
 
 
 fn add(num1:i32 = 0, num2:i32 = 0): i32; return num1+num2 
 
 fn main()
-    num2:i32 = -add(50) + 50 - 60 + num1 > - num1 - num1 * 7
+    num1: i32
+    if 10 + 20 > 50; num1 = 20
+    elif 20==30; num1 = 30
+    else; num = 50
+    num2: i32 = -add(50) + 50 - 60 + num1 > - num1 - num1 * 7

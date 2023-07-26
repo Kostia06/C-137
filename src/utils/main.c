@@ -111,7 +111,7 @@ char* PRINT_TYPE(int type){
         // Keywords + Command names
         "FUNCTION", "TYPE", "EXPRESSION", "SIGN", "STRUCT",
         "DECLARATION","FUNCTION CALL",
-        "IF", "ELSE", "LOOP",
+        "IF","ELSE IF" ,"ELSE", "LOOP",
         "BREAK", "CONTINUE", "RETURN",
 
         // Types

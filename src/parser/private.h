@@ -66,7 +66,8 @@ static function_parser special_functions[END] = {
     [STRUCT] = parser_keyword,
 
     [IF] = parser_keyword_with_value,
-    [ELSE] = parser_keyword_with_value,
+    [ELIF] = parser_keyword_with_value,
+    [ELSE] = parser_keyword,
     [LOOP] = parser_keyword_with_value,
     [RETURN] = parser_keyword_with_value,
 
@@ -101,8 +102,11 @@ static function_parser cmd_functions[END][6][END] = {
     [IF] = {
         [1] = {[NEW_LINE] = parser_end,     [SEMICOLON] = parser_end,}
     },
-    [ELSE] = {
+    [ELIF] = {
         [1] = {[NEW_LINE] = parser_end,     [SEMICOLON] = parser_end,}
+    },
+    [ELSE] = {
+        [0] = {[NEW_LINE] = parser_end,     [SEMICOLON] = parser_end,}
     },
     [LOOP] = {
         [1] = {[NEW_LINE] = parser_end,     [SEMICOLON] = parser_end,}

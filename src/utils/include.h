@@ -25,7 +25,7 @@ typedef enum{
     // Keywords + Command names
     FUNCTION, TYPE, EXPRESSION, SIGN, STRUCT,
     DECLARATION, FUNCTION_CALL, 
-    IF, ELSE, LOOP,
+    IF, ELIF, ELSE, LOOP,
     BREAK, CONTINUE, RETURN,
 
     // Types 
@@ -147,7 +147,7 @@ void mem_free(MemoryGroup* memory,void* ptr);
 void mem_group_free(MemoryGroup* memory);
 void mem_print(MemoryGroup* memory);
 // error
-ErrorGroup* error_group_init(MemoryGroup* memory);
+ErrorGroup* error_group_init(Compiler* compiler);
 void error_single_init(ErrorGroup* error,int type, int start, int size, char* message);
 void error_execute(ErrorGroup* error);
 void error_free(ErrorGroup* error);

@@ -11,7 +11,6 @@
 static Compiler* compiler_init(){
     Compiler* compiler = malloc(sizeof(Compiler));
     compiler->memory = mem_group_init();
-    compiler->error = error_group_init(compiler->memory);
     compiler->scopes = vector_init(compiler->memory);
     return compiler;
 }
@@ -20,7 +19,7 @@ static Vector* lex(Compiler* compiler){
     Vector* nodes = new_lexer(compiler,text);
     error_execute(compiler->error);
     #if DEBUG_LEX
-        printf("LEXER-------------------------------------------------------\n");   
+        printf("LEXER--------------------------------------------------------\n");   
         for(int i=0;i<(int)nodes->size;i++){
             Node* node = vector_get(nodes,i);
             PRINT_NODE(node,0);
@@ -61,9 +60,12 @@ int main(int argc, char *argv[]){
         5. the vector of nodes
     */
     for(int i=0;i<(int)flags->files->size;i++){
-        char* file = vector_get(flags->files,i);
-        compiler->scope = file;
-        vector_add(compiler->scopes,file);
+        // set up current scope
+        char* scope = vector_get(flags->files,i);
+        vector_add(compiler->scopes,scope);
+        compiler->scope = scope;
+        // set up new error group
+        compiler->error = error_group_init(compiler); 
         // lex the file
         Vector* nodes = lex(compiler);
         // create asts from the nodes

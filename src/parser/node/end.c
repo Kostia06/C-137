@@ -9,6 +9,7 @@ static int parents[END] = {
     [FUNCTION] = 1,
     [STRUCT] = 1,
     [IF] = 1,
+    [ELIF] = 1,
     [ELSE] = 1,
     [LOOP] = 1,
 };
@@ -33,6 +34,10 @@ static int block_holders[END][END] = {
         [RETURN] = 1,
     },
     [IF] = {
+        [STRUCT] = 1,
+        [FUNCTION] = 1,
+    },
+    [ELIF] = {
         [STRUCT] = 1,
         [FUNCTION] = 1,
     },
