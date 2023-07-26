@@ -11,7 +11,9 @@ void parser_declaration_end(Parser* parser){
 void parser_declaration_value(Parser* parser){
     parser->hold_cmd = parser->cmd;
     parser->cmd = mem_init(parser->compiler->memory,sizeof(Node));
-    parser->cmd->children = vector_init();
+    if(!parser->cmd->children){
+        parser->cmd->children = vector_init(parser->compiler->memory);
+    }
     parser->cmd->index = parser->current_node->index;
     parser->cmd->type = EXPRESSION;
     // clean up

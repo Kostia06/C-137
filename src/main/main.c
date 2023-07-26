@@ -10,9 +10,9 @@
 
 static Compiler* compiler_init(){
     Compiler* compiler = malloc(sizeof(Compiler));
-    compiler->scopes = vector_init();
-    compiler->error = error_group_init();
     compiler->memory = mem_group_init();
+    compiler->error = error_group_init(compiler->memory);
+    compiler->scopes = vector_init(compiler->memory);
     return compiler;
 }
 static Vector* lex(Compiler* compiler){
@@ -49,16 +49,22 @@ static void ir(Compiler* compiler,Vector* asts){
 
 
 int main(int argc, char *argv[]){
-    Compiler* compiler = compiler_init();
-    CompilerFlags* flags = flags_init(argv,argc);
-    // support for utf-8 aka emojis and other languages
+    Compiler* compiler = compiler_init(); 
+    CompilerFlags* flags = flags_init(compiler->memory,argv,argc);
     setlocale(LC_CTYPE, "en_US.UTF-8");
+    /*
+        # always takes memory, a friendly reminder
+        1. compiler error group
+        2. compiler scopes 
+        3. compiler flags
+        4. compiler flags files
+        5. the vector of nodes
+    */
     for(int i=0;i<(int)flags->files->size;i++){
         char* file = vector_get(flags->files,i);
         compiler->scope = file;
         vector_add(compiler->scopes,file);
         // lex the file
-        MemoryGroup* node_memory = mem_group_init();
         Vector* nodes = lex(compiler);
         // create asts from the nodes
         Vector* asts = parse(compiler,nodes);

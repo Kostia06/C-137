@@ -8,7 +8,7 @@ void parser_add_node_to_cmd(Parser* parser){
 void parser_reset_cmd(Parser* parser){
     parser->cmd = mem_init(parser->compiler->memory,sizeof(Node));
     parser->cmd->type = parser->starter_type;
-    parser->cmd->children = vector_init();
+    parser->cmd->children = vector_init(parser->compiler->memory);
     parser->hold_cmd = NULL;
 }
 // add the current command to the commands
@@ -34,7 +34,7 @@ void parser_free_current_node(Parser* parser){
 // Loop through the nodes until you find end 
 void parser_loop(Parser* parser,Node* node,int type, int start, int end, int everything){
     node->type = type;
-    node->children = vector_init();
+    if(!node->children){node->children = vector_init(parser->compiler->memory);}
     Node* child;
     // gets every node inside the argument including the end of the argument, not the start of it
     int count = 1;

@@ -19,7 +19,7 @@ void parser_expression_add_negative(Parser* parser){
     switch(next_node->type){
         case INTEGER: case FLOAT: case IDENTIFIER:{
             // set up children
-            if(!next_node->children){next_node->children = vector_init();}
+            if(!next_node->children){next_node->children = vector_init(parser->compiler->memory);}
             vector_add(next_node->children,parser->current_node);
             break;
         }
@@ -49,7 +49,7 @@ void parser_expression_double_negation(Parser* parser){
         return;
     }
     if(prev_node && prev_node->type > OP_START && prev_node->type < OP_END){
-        if(!next_node->children){next_node->children = vector_init();}
+        if(!next_node->children){next_node->children = vector_init(parser->compiler->memory);}
         vector_add(next_node->children,parser->current_node);
         return;
     }
@@ -80,7 +80,7 @@ static void expression_middle(Parser* parser, Node* value, Node* op){
 // handle the operation in the expression state
 void parser_expression_init(Parser* parser){
     Node* op = parser->current_node; 
-    op->children = vector_init();
+    if(!op->children){op->children = vector_init(parser->compiler->memory);}
     Node* value = vector_pop(parser->cmd->children);
     // handle the first part of the expression
     if(!parser->hold_op){

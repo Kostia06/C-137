@@ -29,7 +29,7 @@ Vector* new_lexer(Compiler* compiler,char* text){
     Lexer* lexer = mem_init(compiler->memory,sizeof(Lexer));
     lexer->compiler = compiler;
     // Vector of nodes and current node
-    lexer->nodes = vector_init();
+    lexer->nodes = vector_init(lexer->compiler->memory);
     lexer->node = new_empty_node(compiler->memory);
     lexer->node->type = NEW_LINE;
     // Get the file

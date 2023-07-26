@@ -7,11 +7,14 @@ void parser_special_argument(Parser* parser){
 // handle the parameters in the argument
 void parser_function_argument(Parser* parser){
     Node* node = parser->current_node;
-    node->children = new_parser(parser->compiler,node->children,EMPTY);
+    Vector* nodes = node->children;
+    node->children = new_parser(parser->compiler,nodes,EMPTY);
+    // clean up
+    mem_free(parser->compiler->memory,nodes);
     for(int i=0;i<(int)node->children->size;i++){
         Node* parameter = vector_get(node->children,i);
         if(parameter->type != DECLARATION){
-            char* message = SYNC((char*[]){"Expected a parameter, got a ",PRINT_TYPE(parameter->type),NULL}); 
+            char* message = SYNC((char*[]){"Expected a PARAMETER, got a ",PRINT_TYPE(parameter->type),NULL}); 
             error_single_init(parser->compiler->error,SYNTAX_ERROR,parameter->index,parameter->index+parameter->size,message);
             parser_error_skip(parser);
             return;
@@ -23,7 +26,10 @@ void parser_function_argument(Parser* parser){
 void parser_expression_argument(Parser* parser){
     Node* node = parser->current_node; 
     Node* last = vector_get(parser->cmd->children,parser->cmd->children->size-1);
-    node->children = new_parser(parser->compiler,node->children,EXPRESSION);
+    Vector* nodes = node->children;
+    node->children = new_parser(parser->compiler,nodes,EXPRESSION);
+    // clean up
+    mem_free(parser->compiler->memory,nodes);
     // checks if everything in the argument is an expression
     for(int i=0;i<(int)node->children->size;i++){
         Node* parameter = vector_get(node->children,i);
@@ -35,7 +41,7 @@ void parser_expression_argument(Parser* parser){
         }
     }
     if(last && last->type == IDENTIFIER){
-        if(!last->children){last->children = vector_init();}
+        if(!last->children){last->children = vector_init(parser->compiler->memory);}
         vector_add(last->children,node);
         return;
     }
@@ -47,8 +53,10 @@ void parser_expression_argument(Parser* parser){
     }
     parser->current_node = vector_pop(node->children);
     FREE_NODE(parser->compiler->memory,node);
+
     node = vector_pop(parser->current_node->children);
     FREE_NODE(parser->compiler->memory,parser->current_node);
+
     parser->current_node = node;
     parser_add_node_to_cmd(parser);
 }
@@ -56,7 +64,11 @@ void parser_expression_argument(Parser* parser){
 void parser_declaration_argument(Parser* parser){
     Node* node = parser->current_node; 
     Node* last = vector_get(parser->cmd->children,parser->cmd->children->size-1);
-    node->children = new_parser(parser->compiler,node->children,EXPRESSION);
+    Vector* nodes = node->children;
+    node->children = new_parser(parser->compiler,nodes,EXPRESSION);
+    // clean up
+    mem_free(parser->compiler->memory,nodes);
+
     // checks if everything in the argument is an expression
     for(int i=0;i<(int)node->children->size;i++){
         Node* parameter = vector_get(node->children,i);
@@ -73,7 +85,7 @@ void parser_declaration_argument(Parser* parser){
         parser_error_skip(parser);
         return;
     } 
-    if(!last->children){last->children = vector_init();} 
+    if(!last->children){last->children = vector_init(parser->compiler->memory);} 
     vector_add(last->children,node);
     parser->cmd->type = FUNCTION_CALL;
 }

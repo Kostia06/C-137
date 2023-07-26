@@ -72,9 +72,9 @@ static char** split_lines(char* str,char* split){
     array[size] = NULL;
     return array;
 }
-ErrorGroup* error_group_init(){
-    ErrorGroup* error = malloc(sizeof(ErrorGroup));
-    error->rules = vector_init();
+ErrorGroup* error_group_init(MemoryGroup* memory){
+    ErrorGroup* error = malloc(sizeof(ErrorGroup)); 
+    error->rules = vector_init(memory);
     return error;
 }
 // checks if there is any errors

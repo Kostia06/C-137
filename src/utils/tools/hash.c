@@ -3,7 +3,7 @@
 // initialize a hash table
 Hash* hash_init(MemoryGroup* memory){
     Hash* hash = mem_init(memory,sizeof(Hash));
-    hash->value_keys = vector_init();
+    hash->value_keys = vector_init(memory);
     hash->memory = memory;
     return hash;
 }
@@ -30,7 +30,7 @@ HashKey* hash_get(Hash* hash,int key){return hash->table[key];}
 int hash_find(Hash* hash,int key){return hash->table[key]!=NULL;}
 // clear the hash
 Vector* hash_get_vector(Hash* hash){
-    Vector* vector = vector_init();
+    Vector* vector = vector_init(hash->memory);
     for(int i=0;i<(int)hash->value_keys->size;i++){
         char* key = vector_get(hash->value_keys,i);
         vector_add(vector,hash_get(hash,hash_id(key)));

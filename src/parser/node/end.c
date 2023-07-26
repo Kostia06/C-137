@@ -102,7 +102,7 @@ void parser_end(Parser* parser){
     if(is_parent){
         Node* block = mem_init(parser->compiler->memory,sizeof(Node));
         block->type = BLOCK;
-        block->children = vector_init();
+        block->children = vector_init(parser->compiler->memory);
         vector_add(parser->cmd->children,block);
         vector_add(parser->layers,parser->cmd);
     }

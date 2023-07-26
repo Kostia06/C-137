@@ -1,10 +1,7 @@
 #include "include.h"
 
-#define DEBUG_NODE    0
-
-#if DEBUG_NODE == 1
-    static int node_count;
-#endif
+static int node_count;
+#define DEBUG_NODE 0
 
 char* SYNC(char** array){
     int num = 0;
@@ -66,36 +63,33 @@ char** SPLIT(char* string,char* split,int* return_size){
     *return_size = i;
     return array;
 }
+// table shows if node has a value with memory allocated
+static int has_memory[END] = {
+    [STRING] = 1,   [IDENTIFIER] = 1,
+    [INTEGER] = 1,  [FLOAT] = 1,
+};
 void PRINT_NODE(Node* node,int level){
     char* tab = malloc(sizeof(char)*level);
     for(int i=0;i<level;i++){tab[i] = '\t';}
-#if DEBUG_NODE == 1
-        printf("%s%d NODE:%d:",tab,++node_count,!node->children?-1:(int)node->children->size);
-#else
-        printf("%sNODE:%d:",tab,!node->children?-1:(int)node->children->size);
-#endif
+    printf("%sNODE:%d:",tab,!node->children?-1:(int)node->children->size);
     printf("%s",PRINT_TYPE(node->type));
     if(node->type == STRING || node->type == IDENTIFIER || node->type == INTEGER || node->type == FLOAT){
         printf("\t\t");
         char* value;
         if(node->type == EMPTY){value = "EMPTY";}
         else{value = node->value.string;}
-        #if DEBUG_NODE == 1
-            printf("%d Value: %s",++node_count,value);
-        #else
-            printf("Value: %s",value);
-        #endif
+        printf("Value: %s",value);
     }
+    node_count++;
+    if(node->children){node_count++;}
+    node_count += has_memory[node->type];
+#if DEBUG_NODE
+    printf("\tmem=%d",node_count);
+#endif
     printf("\n");
-    if(node->children == NULL){return;}
-    for(int i=0;i<node->children->size;i++){PRINT_NODE(vector_get(node->children,i),level+1);}
-    
+    if(!node->children){return;}
+    for(int i=0;i<node->children->size;i++){PRINT_NODE(vector_get(node->children,i),level+1);} 
 }
-// table shows if node has a value with memory allocated
-static int has_memory[END] = {
-    [STRING] = 1,   [IDENTIFIER] = 1,
-    [INTEGER] = 1,  [FLOAT] = 1,
-};
 // free a node
 void FREE_NODE(MemoryGroup* memory,Node* node){
     if(has_memory[node->type]){mem_free(memory,node->value.string);}
@@ -103,11 +97,9 @@ void FREE_NODE(MemoryGroup* memory,Node* node){
         for(int i=0;i<(int)node->children->size;i++){
             FREE_NODE(memory,vector_get(node->children,i));
         }
-        vector_set_size(node->children,0);
-        vector_free(node->children);
+        mem_free(memory,node->children);
     }
     mem_free(memory,node);
-
 }
 char* PRINT_TYPE(int type){
     return (char*[]){

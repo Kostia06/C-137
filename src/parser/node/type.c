@@ -6,7 +6,7 @@ void parser_type_init(Parser* parser){
     parser->cmd = mem_init(parser->compiler->memory,sizeof(Node));
     parser->cmd->index = parser->current_node->index;
     parser->cmd->type = TYPE;
-    parser->cmd->children = vector_init();
+    parser->cmd->children = vector_init(parser->compiler->memory);
     // clean up
     FREE_NODE(parser->compiler->memory,parser->current_node);
 }
@@ -22,7 +22,7 @@ void parser_type_end(Parser* parser){
 // specify the type
 void parser_type_add_type(Parser* parser){
     Node* node = parser->current_node;
-    node->children = vector_init();
+    if(!node->children){node->children = vector_init(parser->compiler->memory);}
     parser_add_node_to_cmd(parser);
 }
 // add characterisitcs to the type

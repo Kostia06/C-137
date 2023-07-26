@@ -65,14 +65,23 @@ typedef enum{
     END,
 } Types;
 
-typedef struct{
-    void** data;
-    size_t size;
-    size_t capacity;
-}Vector;
+typedef struct LinkedItemStruct LinkedItem;
+typedef struct MemoryGroupStruct MemoryGroup;
+
+typedef struct LinkedItemStruct{
+    LinkedItem* prev, *next;
+    void* element;
+}LinkedItem;
 
 typedef struct{
-    Vector* ptrs;
+    MemoryGroup* memory;
+    LinkedItem* start, *end;
+    int size;
+}Vector;
+
+typedef struct MemoryGroupStruct{
+    size_t size;
+    LinkedItem* start, *end;
 }MemoryGroup;
 
 typedef struct{
@@ -123,26 +132,22 @@ void PRINT_NODE(Node* node,int level);
 char* SYNC(char** array);
 char* PRINT_TYPE(int type);
 // vector
-Vector* vector_init();
+Vector* vector_init(MemoryGroup* memory);
 void vector_add(Vector* v, void* element);
 void* vector_pop(Vector* v);
 void* vector_pop_by_index(Vector* v,int index);
-void vector_insert(Vector* v, size_t index,void* element);
 void vector_clear(Vector* v);
 void* vector_get(Vector* v, size_t index);
-void vector_replace(Vector* v,size_t index,void* element);
 void vector_remove(Vector* v,size_t index);
-void vector_set_size(Vector* v,size_t size);
+void vector_free(Vector* v);
 // memory
 MemoryGroup* mem_group_init();
 void* mem_init(MemoryGroup* memory,size_t size);
-void* mem_copy(MemoryGroup* memory,void* ptr);
 void mem_free(MemoryGroup* memory,void* ptr);
 void mem_group_free(MemoryGroup* memory);
 void mem_print(MemoryGroup* memory);
-void vector_free(Vector* v);
 // error
-ErrorGroup* error_group_init();
+ErrorGroup* error_group_init(MemoryGroup* memory);
 void error_single_init(ErrorGroup* error,int type, int start, int size, char* message);
 void error_execute(ErrorGroup* error);
 void error_free(ErrorGroup* error);
