@@ -23,11 +23,16 @@ typedef enum{
     ARRAY,ARGUMENT,BLOCK,
     IDENTIFIER,
     // Keywords + Command names
-    FUNCTION, TYPE, EXPRESSION, SIGN, STRUCT,
+    FUNCTION, TYPE, EXPRESSION, SIGN, STRUCT, MACRO,
     DECLARATION, FUNCTION_CALL, 
     IF, ELIF, ELSE, LOOP,
     BREAK, CONTINUE, RETURN,
-
+    // Maceos
+    MACROS_START, 
+        MACRO_IF, MACRO_ELIF, MACRO_ELSE,
+        MACRO_SWAP,
+        MACRO_END,
+    MACROS_END,
     // Types 
     I1, I8, I16,I32, I64, I128, 
     F16,F32, F64, F128,
@@ -58,7 +63,7 @@ typedef enum{
     SINGLE_COMMENT, SINGLE_COMMENT_START,
     MULTI_COMMENT,MULTI_COMMENT_START,
     // Error types
-    SYNTAX_ERROR, FILE_ERROR, 
+    SYNTAX_ERROR, FILE_ERROR, MEMORY_ERROR, 
 
     
 
@@ -119,6 +124,7 @@ typedef struct{
     ErrorGroup* error;
     MemoryGroup* memory;
     Vector* scopes;
+    Vector* swaps;
     char* scope;
 } Compiler;
 
@@ -127,6 +133,7 @@ char* READ_FILE(ErrorGroup* error,MemoryGroup* memory,char* file_name);
 char* STRINGIFY(float num);
 char** SPLIT(char* string,char* split,int* return_size);
 void FREE_NODE(MemoryGroup* memory,Node* node);
+int NODE_MEMORY(Node* node);
 // Debug tools
 void PRINT_NODE(Node* node,int level);
 char* SYNC(char** array);
@@ -134,6 +141,7 @@ char* PRINT_TYPE(int type);
 // vector
 Vector* vector_init(MemoryGroup* memory);
 void vector_add(Vector* v, void* element);
+void vector_add_by_index(Vector* v,void* element,int index);
 void* vector_pop(Vector* v);
 void* vector_pop_by_index(Vector* v,int index);
 void vector_clear(Vector* v);
@@ -146,6 +154,7 @@ void* mem_init(MemoryGroup* memory,size_t size);
 void mem_free(MemoryGroup* memory,void* ptr);
 void mem_group_free(MemoryGroup* memory);
 void mem_print(MemoryGroup* memory);
+void* mem_copy(MemoryGroup* memory,void* ptr,size_t size);
 // error
 ErrorGroup* error_group_init(Compiler* compiler);
 void error_single_init(ErrorGroup* error,int type, int start, int size, char* message);

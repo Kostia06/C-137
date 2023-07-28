@@ -61,3 +61,8 @@ void mem_group_free(MemoryGroup* memory){
 void mem_print(MemoryGroup* memory){
     printf("Memory size: %zu\n",memory->size);
 }
+void* mem_copy(MemoryGroup* memory,void* ptr,size_t size){
+    void* new_ptr = mem_init(memory,size);
+    memcpy(new_ptr,ptr,size);
+    return new_ptr;
+}

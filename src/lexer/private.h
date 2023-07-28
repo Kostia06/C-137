@@ -23,6 +23,8 @@ enum{
     LT_DOT, LT_DIGIT,
     LT_ALPHA,
     LT_NEW_LINE,
+    LT_AT,
+    LT_SKIP,
     LT_END,
 }LexerType;
 static int characters[256] = {
@@ -34,10 +36,10 @@ static int characters[256] = {
     LT_SIGN, LT_SIGN, LT_SIGN, LT_SIGN, LT_SIGN, LT_SIGN, LT_DOT, LT_SIGN,
 	LT_DIGIT, LT_DIGIT, LT_DIGIT, LT_DIGIT, LT_DIGIT, LT_DIGIT, LT_DIGIT, LT_DIGIT,
 	LT_DIGIT, LT_DIGIT, LT_SIGN, LT_SIGN,LT_SIGN ,LT_SIGN, LT_SIGN, LT_SIGN,
-	LT_SIGN, LT_ALPHA, LT_ALPHA, LT_ALPHA, LT_ALPHA, LT_ALPHA, LT_ALPHA, LT_ALPHA,
+	LT_AT, LT_ALPHA, LT_ALPHA, LT_ALPHA, LT_ALPHA, LT_ALPHA, LT_ALPHA, LT_ALPHA,
 	LT_ALPHA, LT_ALPHA, LT_ALPHA, LT_ALPHA, LT_ALPHA, LT_ALPHA, LT_ALPHA, LT_ALPHA,
 	LT_ALPHA, LT_ALPHA, LT_ALPHA, LT_ALPHA, LT_ALPHA, LT_ALPHA, LT_ALPHA, LT_ALPHA,
-	LT_ALPHA, LT_ALPHA, LT_ALPHA, LT_SIGN, LT_SIGN, LT_SIGN,LT_SIGN, LT_UNDERSCORE,
+	LT_ALPHA, LT_ALPHA, LT_ALPHA, LT_SIGN, LT_SKIP, LT_SIGN,LT_SIGN, LT_UNDERSCORE,
 	LT_BACKTICK, LT_ALPHA, LT_ALPHA, LT_ALPHA, LT_ALPHA, LT_ALPHA, LT_ALPHA, LT_ALPHA,
 	LT_ALPHA, LT_ALPHA, LT_ALPHA, LT_ALPHA, LT_ALPHA, LT_ALPHA, LT_ALPHA, LT_ALPHA,
 	LT_ALPHA, LT_ALPHA, LT_ALPHA, LT_ALPHA, LT_ALPHA, LT_ALPHA, LT_ALPHA, LT_ALPHA,
@@ -52,7 +54,12 @@ static Keyword keywords[] = {
     {"i1",I1},{"i8",I8},{"i16",I16},{"i32",I32},{"i64",I64},{"i128",I128},
     {"f16",F16},{"f32",F32},{"f64",F64},{"f128",F128},
 };
-
+#define MACRO_COUNT 5
+static Keyword macros[] = {
+    {"if",MACRO_IF},{"elif",MACRO_ELIF},{"else",MACRO_ELSE},
+    {"swap",MACRO_SWAP},
+    {"end",MACRO_END},
+};
 // IMPORTANT: the order of the signs should be from the longest to the shortest
 #define SIGN_COUNT 34
 #define LONGEST_SIGN 2
@@ -86,6 +93,7 @@ Node* new_empty_node(MemoryGroup* memory);
 void lexer_reset_node(Lexer* lexer);
 void lexer_advance(Lexer* lexer);
 void lexer_back(Lexer* lexer);
+void lexer_skip(Lexer* lexer);
 char lexer_peek(Lexer* lexer);
 //New Line --------------------------------------------------------
 void lexer_new_line_init(Lexer* lexer);
@@ -104,6 +112,9 @@ void lexer_add_decimal(Lexer* lexer);
 void lexer_new_identifier(Lexer* lexer);
 void lexer_add_char(Lexer* lexer);
 void lexer_check_identifier(Lexer* lexer);
+// Macro ----------------------------------------------------------
+void lexer_new_macro(Lexer* lexer);
+void lexer_check_macro(Lexer* lexer);
 //Sign ------------------------------------------------------------
 void lexer_new_sign(Lexer* lexer);
 void lexer_add_char_to_sign(Lexer* lexer);
@@ -122,9 +133,11 @@ static lexer_function states[END][LT_END] = {
         [LT_DOUBLE_QUOTE] =lexer_new_string,
         [LT_BACKTICK] = lexer_new_string,
         [LT_SIGN] =lexer_new_sign,
+        [LT_AT] =lexer_new_macro,
         [LT_DOT] =lexer_error_decimal,
         [LT_DIGIT] =lexer_new_integer,
         [LT_ALPHA] =lexer_new_identifier,
+        [LT_SKIP] = lexer_skip,
         [LT_NEW_LINE] = lexer_new_line_init
     },
     [SINGLE_COMMENT] = {
@@ -135,8 +148,10 @@ static lexer_function states[END][LT_END] = {
         [LT_BACKTICK] = lexer_advance,
         [LT_SIGN] = lexer_advance,
         [LT_DOT] = lexer_advance,
+        [LT_AT] = lexer_advance,
         [LT_DIGIT] = lexer_advance,
         [LT_ALPHA] = lexer_advance,
+        [LT_SKIP] = lexer_advance,
         [LT_NEW_LINE] = lexer_end_comment,
     },
     [MULTI_COMMENT] = {
@@ -147,9 +162,11 @@ static lexer_function states[END][LT_END] = {
         [LT_BACKTICK] = lexer_advance,
         [LT_SIGN] = lexer_comment_advance,
         [LT_DOT] = lexer_advance,
+        [LT_AT] = lexer_advance,
         [LT_DIGIT] = lexer_advance,
         [LT_ALPHA] = lexer_advance,
-        [LT_NEW_LINE] = lexer_advance,
+        [LT_SKIP] = lexer_advance,
+        [LT_NEW_LINE] = lexer_advance
     },
     [INTEGER] = {
         [LT_SPACE] = lexer_reset_node,
@@ -158,9 +175,11 @@ static lexer_function states[END][LT_END] = {
         [LT_DOUBLE_QUOTE] = lexer_reset_node,
         [LT_BACKTICK] = lexer_reset_node,
         [LT_SIGN] = lexer_reset_node,
+        [LT_AT] = lexer_reset_node,
         [LT_DOT] = lexer_add_dot,
         [LT_DIGIT] = lexer_add_char,
         [LT_ALPHA] = lexer_reset_node,
+        [LT_SKIP] = lexer_reset_node,
         [LT_NEW_LINE] = lexer_reset_node
     },
     [FLOAT] = {
@@ -170,9 +189,11 @@ static lexer_function states[END][LT_END] = {
         [LT_DOUBLE_QUOTE] = lexer_reset_node,
         [LT_BACKTICK] = lexer_reset_node,
         [LT_SIGN] = lexer_reset_node,
+        [LT_AT] = lexer_reset_node,
         [LT_DOT] = lexer_reset_node,
         [LT_DIGIT] = lexer_add_char,
         [LT_ALPHA] = lexer_reset_node,
+        [LT_SKIP] = lexer_reset_node,
         [LT_NEW_LINE] = lexer_reset_node
     },
     [S_STRING] ={
@@ -182,9 +203,11 @@ static lexer_function states[END][LT_END] = {
         [LT_DOUBLE_QUOTE] = lexer_single_string_add_char,
         [LT_BACKTICK] = lexer_single_string_add_char,
         [LT_SIGN] = lexer_single_string_add_char,
+        [LT_AT] = lexer_single_string_add_char,
         [LT_DOT] = lexer_single_string_add_char,
         [LT_DIGIT] = lexer_single_string_add_char,
         [LT_ALPHA] = lexer_single_string_add_char,
+        [LT_SKIP] = lexer_single_string_add_char,
         [LT_NEW_LINE] = lexer_add_new_line
     },
     [D_STRING] ={
@@ -194,9 +217,11 @@ static lexer_function states[END][LT_END] = {
         [LT_DOUBLE_QUOTE] = lexer_string_end,
         [LT_BACKTICK] = lexer_add_char,
         [LT_SIGN] = lexer_add_char,
+        [LT_AT] = lexer_add_char,
         [LT_DOT] = lexer_add_char,
         [LT_DIGIT] = lexer_add_char,
         [LT_ALPHA] = lexer_add_char,
+        [LT_SKIP] = lexer_add_char,
         [LT_NEW_LINE] = lexer_add_new_line
     },
     [B_STRING] = {
@@ -206,13 +231,29 @@ static lexer_function states[END][LT_END] = {
         [LT_DOUBLE_QUOTE] = lexer_add_char,
         [LT_BACKTICK] = lexer_string_end,
         [LT_SIGN] = lexer_add_char,
+        [LT_AT] = lexer_add_char,
         [LT_DOT] = lexer_add_char,
         [LT_DIGIT] = lexer_add_char,
         [LT_ALPHA] = lexer_add_char,
+        [LT_SKIP] = lexer_add_char,
         [LT_NEW_LINE] = lexer_add_new_line
     },
     [SIGN] = {
         [LT_SIGN] = lexer_add_char_to_sign,
+    },
+    [MACRO] = {
+        [LT_SPACE] = lexer_check_macro,
+        [LT_UNDERSCORE] = lexer_add_char,
+        [LT_SINGLE_QUOTE] = lexer_check_macro,
+        [LT_DOUBLE_QUOTE] = lexer_check_macro,
+        [LT_BACKTICK] = lexer_check_macro,
+        [LT_SIGN] = lexer_check_macro,
+        [LT_AT] = lexer_check_macro,
+        [LT_DOT] = lexer_check_macro,
+        [LT_DIGIT] = lexer_add_char,
+        [LT_ALPHA] = lexer_add_char,
+        [LT_SKIP] = lexer_check_macro,
+        [LT_NEW_LINE] = lexer_check_macro
     },
     [IDENTIFIER] = {
         [LT_SPACE] = lexer_check_identifier,
@@ -221,9 +262,11 @@ static lexer_function states[END][LT_END] = {
         [LT_DOUBLE_QUOTE] = lexer_check_identifier,
         [LT_BACKTICK] = lexer_check_identifier,
         [LT_SIGN] = lexer_check_identifier,
+        [LT_AT] = lexer_check_identifier,
         [LT_DOT] = lexer_check_identifier,
         [LT_DIGIT] = lexer_add_char,
         [LT_ALPHA] = lexer_add_char,
+        [LT_SKIP] = lexer_check_identifier,
         [LT_NEW_LINE] = lexer_check_identifier
     }, 
     [NEW_LINE] = {
@@ -233,9 +276,11 @@ static lexer_function states[END][LT_END] = {
         [LT_DOUBLE_QUOTE] = lexer_reset_node,
         [LT_BACKTICK] = lexer_reset_node,
         [LT_SIGN] = lexer_reset_node,
+        [LT_AT] = lexer_reset_node,
         [LT_DOT] = lexer_reset_node,
         [LT_DIGIT] = lexer_reset_node,
         [LT_ALPHA] = lexer_reset_node,
+        [LT_SKIP] = lexer_reset_node,
         [LT_NEW_LINE] = lexer_reset_node
     },
 };

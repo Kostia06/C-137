@@ -19,6 +19,31 @@ void vector_add(Vector* v, void* element){
     }
     v->size++;
 }
+void vector_add_by_index(Vector* v,void* element,int index){
+    LinkedItem* item = malloc(sizeof(LinkedItem));
+    item->element = element;
+    if(index == 0){
+        item->next = v->start;
+        v->start->prev = item;
+        v->start = item;
+    }
+    else if(index == v->size){
+        v->end->next = item;
+        item->prev = v->end;
+        v->end = item;
+    }
+    else{
+        LinkedItem* next = v->start;
+        for(int i=0;i<index;i++){next = next->next;}
+        LinkedItem* prev = next->prev;
+        prev->next = item;
+        item->prev = prev;
+        item->next = next;
+        next->prev = item;
+    }
+    v->size++;
+}
+
 void* vector_pop(Vector* v){
     if(v->size == 0){return NULL;}
     void* element = v->end->element;

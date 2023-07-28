@@ -71,6 +71,10 @@ void error_execute(ErrorGroup* error){
                 printf("%s%s: %sfile error: %s%s%s\n",WHITE,error->scope,RED,WHITE,rule->message,RESET);
                 break;
             }
+            case MEMORY_ERROR:{
+                printf("%s%s: %smemory error: %s%s%s\n",WHITE,error->scope,RED,WHITE,rule->message,RESET);
+                break;
+            }
             case SYNTAX_ERROR:{
                 int error_line;
                 char* error_message = get_error(error->scope,RED,rule->start,rule->end,&error_line);

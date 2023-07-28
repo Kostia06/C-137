@@ -1,8 +1,5 @@
 #include "include.h"
 
-static int node_count;
-#define DEBUG_NODE 0
-
 char* SYNC(char** array){
     int num = 0;
     int length = 0;
@@ -71,7 +68,7 @@ static int has_memory[END] = {
 void PRINT_NODE(Node* node,int level){
     char* tab = malloc(sizeof(char)*level);
     for(int i=0;i<level;i++){tab[i] = '\t';}
-    printf("%sNODE:%d:",tab,!node->children?-1:(int)node->children->size);
+    printf("%sNODE:%d:%d-%d:",tab,!node->children?-1:(int)node->children->size,node->index,node->index+node->size);
     printf("%s",PRINT_TYPE(node->type));
     if(node->type == STRING || node->type == IDENTIFIER || node->type == INTEGER || node->type == FLOAT){
         printf("\t\t");
@@ -80,12 +77,6 @@ void PRINT_NODE(Node* node,int level){
         else{value = node->value.string;}
         printf("Value: %s",value);
     }
-    node_count++;
-    if(node->children){node_count++;}
-    node_count += has_memory[node->type];
-#if DEBUG_NODE
-    printf("\tmem=%d",node_count);
-#endif
     printf("\n");
     if(!node->children){return;}
     for(int i=0;i<node->children->size;i++){PRINT_NODE(vector_get(node->children,i),level+1);} 
@@ -101,6 +92,18 @@ void FREE_NODE(MemoryGroup* memory,Node* node){
     }
     mem_free(memory,node);
 }
+// count how much memory used
+int NODE_MEMORY(Node* node){
+    int count = 1;
+    count += has_memory[node->type];
+    if(node->children){
+        count++;
+        for(int i=0;i<(int)node->children->size;i++){
+            count += NODE_MEMORY(vector_get(node->children,i));
+        }
+    }
+    return count; 
+}
 char* PRINT_TYPE(int type){
     return (char*[]){
         //Types
@@ -109,11 +112,17 @@ char* PRINT_TYPE(int type){
         "IDENTIFIER",
 
         // Keywords + Command names
-        "FUNCTION", "TYPE", "EXPRESSION", "SIGN", "STRUCT",
+        "FUNCTION", "TYPE", "EXPRESSION", "SIGN", "STRUCT", 
+        "MACRO",
         "DECLARATION","FUNCTION CALL",
         "IF","ELSE IF" ,"ELSE", "LOOP",
         "BREAK", "CONTINUE", "RETURN",
-
+        // Macros
+        "MACRO START", 
+            "MACRO IF", "MACRO ELSE IF", "MACRO ELSE",
+            "MACRO SWAP", 
+            "MACRO END",
+        "MACRO END",
         // Types
         "I1","I8","I16","I32", "I64", "I128",
         "F16","F32", "F64", "F128", 
@@ -145,7 +154,7 @@ char* PRINT_TYPE(int type){
         "SINGLE_COMMENT", "SINGLE_COMMENT_START",
         "MULTI_COMMENT","MULTI_COMMENT_START",
 
-        "SYNTAX_ERROR", "FILE_ERROR",
+        "SYNTAX_ERROR", "FILE_ERROR", "MEMORY_ERROR",
 
     }[type];
 }

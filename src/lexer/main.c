@@ -1,6 +1,8 @@
 #include "include.h"
 #include "private.h"
 
+#define INDEX       500000
+
 Node* new_empty_node(MemoryGroup* memory){
     Node* node = mem_init(memory,sizeof(Node));
     node->type = EMPTY;
@@ -21,6 +23,10 @@ void lexer_back(Lexer* lexer){
     lexer->index--;
     lexer->current_char = lexer->text[lexer->index];
 }
+void lexer_skip(Lexer* lexer){
+    lexer_advance(lexer);
+    lexer_advance(lexer);
+}
 char lexer_peek(Lexer* lexer){
     return lexer->text[lexer->index+1]; 
 }
@@ -37,16 +43,28 @@ Vector* new_lexer(Compiler* compiler,char* text){
     lexer->text_size = strlen(text);
 
     lexer->current_char = lexer->text[0];
-    
-    while(lexer->index < lexer->text_size){
+   
+    int debug_index = 0;
+    while(lexer->index < lexer->text_size && debug_index++ < INDEX){
         // Variable checks if the current character is a emoji
-        // Every emoji is a array of negative numbers 
+        // Every emoji is a array of negative numbers
         int type = LT_ALPHA;
         // if the current character is not a emoji get the character type from the array
         if(lexer->current_char >= 0){type = characters[lexer->current_char];}
         // Get the function that corresponds to the current character type
         lexer_function function = states[lexer->node->type][type];
         function(lexer);
+    }
+    if(debug_index >= INDEX){
+        char* message = SYNC((char*[]){"Infinite loop",NULL});
+        error_single_init(
+            lexer->compiler->error,
+            SYNTAX_ERROR,
+            lexer->node->index,
+            lexer->node->index+1,
+            message
+        );
+        return NULL;
     }
     // If the string is not closed
     if(lexer->node->type != NEW_LINE){

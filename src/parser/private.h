@@ -28,6 +28,7 @@ void parser_special_array(Parser* parser);
 void parser_special_block(Parser* parser);
 void parser_keyword(Parser* parser);
 void parser_keyword_with_value(Parser* parser); 
+void parser_special_swap(Parser* parser);
 // function functions
 void parser_function_argument(Parser* parser);
 // block functions
@@ -56,11 +57,15 @@ void parser_expression_end(Parser* parser);
 void parser_expression_argument(Parser* parser);
 void parser_expression_argument_end(Parser* parser);
 void parser_expression_ternary_op(Parser* parser);
+// macro swap functions
+void parser_macro_swap_init(Parser* parser);
 // special table of functions
 static function_parser special_functions[END] = {
     [ARGUMENT_START] = parser_special_argument,
     [ARRAY_START] = parser_special_array,
     [BLOCK_START] = parser_special_block,
+
+    [MACRO_SWAP] = parser_keyword,
 
     [FUNCTION] = parser_keyword,
     [STRUCT] = parser_keyword,
@@ -73,6 +78,9 @@ static function_parser special_functions[END] = {
 
     [CONTINUE] = parser_keyword,
     [BREAK] = parser_keyword,
+
+    [IDENTIFIER] = parser_special_swap,
+    [SIGN] = parser_special_swap,
     
 };
 // cmd table of functions
@@ -231,6 +239,12 @@ static function_parser cmd_functions[END][6][END] = {
             [QUESTION] = parser_expression_ternary_op,
         },
     },
+    [MACRO_SWAP] = {
+        [0] = {
+            [IDENTIFIER] = parser_macro_swap_init,
+            [SIGN] = parser_macro_swap_init,
+        }
+    }
 };
 
 

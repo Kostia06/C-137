@@ -44,6 +44,7 @@ Vector* new_parser(Compiler* compiler,Vector* nodes,int starter_type){
         }
         
     }
+    // clean up
     Vector* cmds = parser->cmds;
     FREE_NODE(parser->compiler->memory,parser->cmd);
     mem_free(parser->compiler->memory,parser->nodes);
