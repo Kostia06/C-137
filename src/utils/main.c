@@ -68,7 +68,7 @@ static int has_memory[END] = {
 void PRINT_NODE(Node* node,int level){
     char* tab = malloc(sizeof(char)*level);
     for(int i=0;i<level;i++){tab[i] = '\t';}
-    printf("%sNODE:%d:%d-%d:",tab,!node->children?-1:(int)node->children->size,node->index,node->index+node->size);
+    printf("%sNODE:%d:",tab,!node->children?-1:(int)node->children->size);
     printf("%s",PRINT_TYPE(node->type));
     if(node->type == STRING || node->type == IDENTIFIER || node->type == INTEGER || node->type == FLOAT){
         printf("\t\t");
