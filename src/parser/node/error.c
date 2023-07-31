@@ -14,8 +14,5 @@ void parser_error_skip(Parser* parser){
         if(special_function){special_function(parser);}
     }
     // clean up
-    parser->cmd = mem_init(parser->compiler->memory,sizeof(Node));
-    parser->cmd->type = parser->starter_type;
-    parser->cmd->children = vector_init(parser->compiler->memory);
-    parser->hold_cmd = NULL;
+    parser_end(parser);
 }

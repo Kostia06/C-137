@@ -72,19 +72,20 @@ void error_execute(ErrorGroup* error){
                 break;
             }
             case MEMORY_ERROR:{
-                printf("%s%s: %smemory error: %s%s%s\n",WHITE,error->scope,RED,WHITE,rule->message,RESET);
+                printf("%s%s:%smemory error: %s%s%s\n",WHITE,error->scope,RED,WHITE,rule->message,RESET);
                 break;
             }
             case SYNTAX_ERROR:{
                 int error_line;
                 char* error_message = get_error(error->scope,RED,rule->start,rule->end,&error_line);
                 printf(
-                    "%s%s: %ssyntax error: %s%s\n",
+                    "%s%s:%ssyntax error: %s%s in line %d\n",
                     WHITE,
                     error->scope,
                     RED,
                     WHITE,
-                    rule->message
+                    rule->message,
+                    error_line
                 );
                 printf("%s\n",error_message);
                 break; 

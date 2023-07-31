@@ -22,4 +22,4 @@ fn main()
 
     num2: i32 = -add(50) + 50 - 60 + num1 > - num1 - num1 * 7
 
-    add(10,20+30)     
+    add    
