@@ -13,7 +13,7 @@
     1. compiler error group
     2. compiler scopes vector
     3. compiler flags vector
-    4. compiler swaps vector + everything inside
+    4. compiler swaps vector
     5. compiler flags files
     6. the vector of nodes
 */
@@ -25,11 +25,10 @@ static Compiler* compiler_init(){
     compiler->swaps = vector_init(compiler->memory);
     return compiler;
 }
-static int memory_match_check(Compiler* compiler, Vector* nodes){
-    int count = MEMORY_AUTO_USED;
+static int count_memory(Compiler* compiler, Vector* nodes, int count){
     for(int i=0;i<(int)nodes->size;i++){count += NODE_MEMORY(vector_get(nodes,i));}
     for(int i=0;i<(int)compiler->swaps->size;i++){count += NODE_MEMORY(vector_get(compiler->swaps,i));}
-    return count == compiler->memory->size;
+    return  count;
 }
 static Vector* lex(Compiler* compiler){
     char* text = READ_FILE(compiler->error,compiler->memory,compiler->scope);
@@ -40,11 +39,18 @@ static Vector* lex(Compiler* compiler){
             Node* node = vector_get(nodes,i);
             PRINT_NODE(node,0);
         }
-        if(!memory_match_check(compiler,nodes)){
-            char* message = SYNC((char*[]){"Memory match check failed in lexer",NULL}); 
-            error_single_init(compiler->error,MEMORY_ERROR,0,0,message);
-        }
     #endif
+    int memory = count_memory(compiler,nodes,MEMORY_AUTO_USED);
+    if(memory != compiler->memory->size){
+        char* message = SYNC((char*[]){
+            "Memory match check failed in lexer, ",
+            STRINGIFY(memory),
+            "/",
+            STRINGIFY(compiler->memory->size),
+            NULL
+        }); 
+        error_single_init(compiler->error,MEMORY_ERROR,0,0,message);
+    }
     error_execute(compiler->error);
     return nodes;
 }
@@ -56,11 +62,18 @@ static Vector* parse(Compiler* compiler,Vector* nodes){
             Node* ast = vector_get(asts,i);
             PRINT_NODE(ast,0);
         }
-        if(!memory_match_check(compiler,asts)){
-            char* message = SYNC((char*[]){"Memory match check failed in parser",NULL}); 
-            error_single_init(compiler->error,MEMORY_ERROR,0,0,message);
-        }
     #endif
+    int memory = count_memory(compiler,asts,MEMORY_AUTO_USED);
+    if(memory != compiler->memory->size){
+        char* message = SYNC((char*[]){
+            "Memory match check failed in parser, ",
+            STRINGIFY(memory),
+            "/",
+            STRINGIFY(compiler->memory->size),
+            NULL
+        }); 
+        error_single_init(compiler->error,MEMORY_ERROR,0,0,message);
+    }
     error_execute(compiler->error);
     return asts;
 }

@@ -4,22 +4,22 @@
 */
 
 
-@swap string i8*   @end
-
 
 struct Person
-    name: string
-    age: i8* = 1     
+    name: i8*
+    age: i32 = 1    
 
 
 fn add(num1:i32 = 0, num2:i32 = 0): i32; return num1+num2 
 
 
-
 fn main()
     num1: i32
+
     if 10 + 20 > 50; num1 = 20
     elif 20==30; num1 = 30
-    else; num = 50
+    else; num1 = 50
 
     num2: i32 = -add(50) + 50 - 60 + num1 > - num1 - num1 * 7
+
+    add(10,20+30)     

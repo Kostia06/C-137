@@ -23,12 +23,12 @@ typedef enum{
     ARRAY,ARGUMENT,BLOCK,
     IDENTIFIER,
     // Keywords + Command names
-    FUNCTION, TYPE, EXPRESSION, SIGN, STRUCT, MACRO,
-    DECLARATION, FUNCTION_CALL, 
+    FUNCTION, TYPE, EXPRESSION, SIGN, STRUCT,
     IF, ELIF, ELSE, LOOP,
     BREAK, CONTINUE, RETURN,
     // Maceos
     MACROS_START, 
+        MACRO,
         MACRO_IF, MACRO_ELIF, MACRO_ELSE,
         MACRO_SWAP,
         MACRO_END,
@@ -90,7 +90,7 @@ typedef struct MemoryGroupStruct{
 }MemoryGroup;
 
 typedef struct{
-    union{
+    struct{
         int integer;
         char* string;
     }value;

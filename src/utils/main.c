@@ -64,21 +64,20 @@ char** SPLIT(char* string,char* split,int* return_size){
 static int has_memory[END] = {
     [STRING] = 1,   [IDENTIFIER] = 1,
     [INTEGER] = 1,  [FLOAT] = 1,
+    [FUNCTION] = 1, [STRUCT] = 1,
 };
 void PRINT_NODE(Node* node,int level){
     char* tab = malloc(sizeof(char)*level);
     for(int i=0;i<level;i++){tab[i] = '\t';}
-    printf("%sNODE:%d:",tab,!node->children?-1:(int)node->children->size);
+    printf("%s",tab);
     printf("%s",PRINT_TYPE(node->type));
-    if(node->type == STRING || node->type == IDENTIFIER || node->type == INTEGER || node->type == FLOAT){
-        printf("\t\t");
-        char* value;
-        if(node->type == EMPTY){value = "EMPTY";}
-        else{value = node->value.string;}
+    if(has_memory[node->type]){
+        printf("\t");
+        char* value = node->value.string;
         printf("Value: %s",value);
     }
     printf("\n");
-    if(!node->children){return;}
+    if(node->children == NULL){return;}
     for(int i=0;i<node->children->size;i++){PRINT_NODE(vector_get(node->children,i),level+1);} 
 }
 // free a node
@@ -95,7 +94,7 @@ void FREE_NODE(MemoryGroup* memory,Node* node){
 // count how much memory used
 int NODE_MEMORY(Node* node){
     int count = 1;
-    count += has_memory[node->type];
+    if(has_memory[node->type] && node->value.string){count++;}
     if(node->children){
         count++;
         for(int i=0;i<(int)node->children->size;i++){
@@ -113,12 +112,11 @@ char* PRINT_TYPE(int type){
 
         // Keywords + Command names
         "FUNCTION", "TYPE", "EXPRESSION", "SIGN", "STRUCT", 
-        "MACRO",
-        "DECLARATION","FUNCTION CALL",
         "IF","ELSE IF" ,"ELSE", "LOOP",
         "BREAK", "CONTINUE", "RETURN",
         // Macros
-        "MACRO START", 
+        "MACRO START",
+            "MACRO",
             "MACRO IF", "MACRO ELSE IF", "MACRO ELSE",
             "MACRO SWAP", 
             "MACRO END",

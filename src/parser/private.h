@@ -28,6 +28,7 @@ void parser_special_array(Parser* parser);
 void parser_special_block(Parser* parser);
 void parser_keyword(Parser* parser);
 void parser_keyword_with_value(Parser* parser); 
+void parser_keyword_name(Parser* parser);
 void parser_special_swap(Parser* parser);
 // function functions
 void parser_function_argument(Parser* parser);
@@ -37,7 +38,6 @@ void parser_block_end(Parser* parser);
 void parser_empty_identifier(Parser* parser);
 void parser_end(Parser* parser);
 // declaration functions
-void parser_declaration(Parser* parser);
 void parser_declaration_end(Parser* parser);
 void parser_declaration_value(Parser* parser);
 void parser_declaration_argument(Parser* parser);
@@ -87,25 +87,30 @@ static function_parser special_functions[END] = {
 static function_parser cmd_functions[END][6][END] = {
     [EMPTY] = {
         [0] = {
-            [IDENTIFIER] = parser_empty_identifier,
+            [IDENTIFIER] = parser_keyword,
             [NEW_LINE] = parser_end,
             [SEMICOLON] = parser_end,
         }
     },
     [FUNCTION] = {
-        [0] = {[IDENTIFIER] = parser_add_node_to_cmd,},
-        [1] = {[ARGUMENT] = parser_function_argument,},
-        [2] = {
+        [0] = {
+            [IDENTIFIER] = parser_keyword_name,
+            [ARGUMENT] = parser_function_argument,
+        },
+        [1] = {
             [COLON] = parser_type_init,
 
             [NEW_LINE] = parser_end,
             [SEMICOLON] = parser_end,
         },
-        [3] = {[NEW_LINE] = parser_end,     [SEMICOLON] = parser_end,}
+        [2] = {[NEW_LINE] = parser_end,     [SEMICOLON] = parser_end,}
     },
     [STRUCT]= {
-        [0] = {[IDENTIFIER] = parser_add_node_to_cmd,},
-        [1] = {[NEW_LINE] = parser_end,     [SEMICOLON] = parser_end,}
+        [0] = {
+            [IDENTIFIER] = parser_keyword_name,
+            [NEW_LINE] = parser_end,
+            [SEMICOLON] = parser_end,
+        },
     },
     [IF] = {
         [1] = {[NEW_LINE] = parser_end,     [SEMICOLON] = parser_end,}
@@ -128,16 +133,13 @@ static function_parser cmd_functions[END][6][END] = {
     [RETURN] = {
         [1] = {[NEW_LINE] = parser_end,     [SEMICOLON] = parser_end,}
     },
-    [FUNCTION_CALL] = {
-        [1] = {[NEW_LINE] = parser_end,     [SEMICOLON] = parser_end,}
-    },
-    [DECLARATION] = {
-        [1] = {
+    [IDENTIFIER] = {
+        [0] = {
             [ARGUMENT] = parser_declaration_argument,
             [COLON] = parser_type_init,
             [EQUAL] = parser_declaration_value,
         },
-        [2] = {
+        [1] = {
             [EQUAL] = parser_declaration_value,
 
             [NEW_LINE] = parser_end,
@@ -145,7 +147,7 @@ static function_parser cmd_functions[END][6][END] = {
             [COMMA] = parser_declaration_end,
             [ARGUMENT_END] = parser_declaration_end,
         },
-        [3] = {
+        [2] = {
             [NEW_LINE] = parser_end,
             [SEMICOLON] = parser_end,
             [COMMA] = parser_declaration_end,

@@ -3,7 +3,9 @@
 // create new swap node by collecting everyhting until the end
 void parser_macro_swap_init(Parser* parser){
     Node* current = parser->current_node;
-    if(!current->children){current->children = vector_init(parser->compiler->memory);}
+    if(current->children == NULL){
+        current->children = vector_init(parser->compiler->memory);
+    }
     int count = 1;
     Node* node;
     while(count && parser->index < (int)parser->nodes->size){

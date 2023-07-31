@@ -40,9 +40,10 @@ void lexer_add_char(Lexer* lexer){
 // Check if the current node is a keyword from the array "keywords"
 void lexer_check_identifier(Lexer* lexer){
     for(int i = 0;i < KEYWORD_COUNT;i++){
-        if(strcmp(lexer->node->value.string,keywords[i].name) == 0){
+        if(!strcmp(lexer->node->value.string,keywords[i].name)){
             lexer->node->type = keywords[i].type;
             mem_free(lexer->compiler->memory,lexer->node->value.string);
+            lexer->node->value.string = NULL;
             break;
         }
     }

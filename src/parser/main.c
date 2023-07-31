@@ -1,8 +1,6 @@
 #include "include.h"
 #include "private.h"
 
-#define DEBUG   0
-
 Vector* new_parser(Compiler* compiler,Vector* nodes,int starter_type){
     // set up for the parser
     Parser* parser = mem_init(compiler->memory,sizeof(Parser));
@@ -22,16 +20,12 @@ Vector* new_parser(Compiler* compiler,Vector* nodes,int starter_type){
         function_parser special_function = special_functions[parser->current_node->type];
         // handle special cases
         if(special_function){special_function(parser);}
-        #if DEBUG      
-            printf("%s-%d\t",PRINT_TYPE(parser->cmd->type), (int)parser->cmd->children->size);
-            PRINT_NODE(parser->current_node,0);
-        #endif
         // if node is not a NULL and the command is not empty
         if(parser->current_node && parser->current_node->type != EMPTY && parser->cmd){
             function_parser function = cmd_functions[parser->cmd->type][parser->cmd->children->size][parser->current_node->type]; 
             if(function){function(parser);}
             else{
-                char* message = SYNC((char*[]){"Unexpected token in ",PRINT_TYPE(parser->cmd->type),NULL});
+                char* message = SYNC((char*[]){"Unexpected ",PRINT_TYPE(parser->current_node->type)," in ",PRINT_TYPE(parser->cmd->type),NULL});
                 error_single_init(
                     parser->compiler->error,
                     SYNTAX_ERROR,
@@ -42,7 +36,6 @@ Vector* new_parser(Compiler* compiler,Vector* nodes,int starter_type){
                 parser_error_skip(parser);
             } 
         }
-        
     }
     // clean up
     Vector* cmds = parser->cmds;

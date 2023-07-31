@@ -15,11 +15,6 @@
 
 - add arrays
 
-- add structs
-    struct Person
-        name: i8*
-        age: i32 = 18
-        height: f32; weight: f32
 
 - add switch
     switch num
@@ -66,3 +61,11 @@
 - function methods like in julia
 
 - add the return simplification like in rust
+
+- http
+
+- io file
+
+- c bindings
+
+- add goto
