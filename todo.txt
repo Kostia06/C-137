@@ -9,6 +9,7 @@
     - borrow checker
     - garbage collector
     - reference counting
+    - something new
 
 - find a way to change the type of a variable
     num1:i32      |   10:f32            
@@ -16,20 +17,6 @@
 - add arrays
 
 
-- add switch
-    switch num
-        case 1; print("1")
-        case 2; print("2")
-        case 3; print("3")
-        default
-            print("default")
-
-- add enums
-    enum 
-        TOKEN_1         // 0
-        TOKEN_2 = 5     // 5
-        TOKEN_3         // 6
-        ...
 - add a way to handle nil value
     fn func(num: i32): i32?
         if num == 0; return nil
@@ -56,8 +43,6 @@
 
 - make a simplifier that simplifies code to the fullest
 
-- for loops
-
 - function methods like in julia
 
 - add the return simplification like in rust
@@ -69,3 +54,13 @@
 - c bindings
 
 - add goto
+
+- add handle for strings
+
+- add pattern matching
+
+- add return tuple 
+
+- finish the srting usage
+    - good idea to turn every string into a char array, so that I can only edit array 
+

@@ -22,6 +22,7 @@ Node* parser_peek(Parser* parser);
 void parser_loop(Parser* parser,Node* node,int type, int start, int end, int everything);
 void parser_free_current_node(Parser* parser);
 void parser_reset_cmd(Parser* parser);
+Node* parser_create_copy(Parser* parser,Node* node, int index, int size);
 // special functions
 void parser_special_argument(Parser* parser);
 void parser_special_array(Parser* parser);
@@ -37,10 +38,12 @@ void parser_block_end(Parser* parser);
 // empty functions
 void parser_empty_identifier(Parser* parser);
 void parser_end(Parser* parser);
-// declaration functions
-void parser_declaration_end(Parser* parser);
-void parser_declaration_value(Parser* parser);
-void parser_declaration_argument(Parser* parser);
+// identifier functions
+void parser_identifier_end(Parser* parser);
+void parser_identifier_add(Parser* parser);
+void parser_identifier_value(Parser* parser);
+void parser_identifier_argument(Parser* parser);
+void parser_identifier_compound_op(Parser* parser);
 // type functions
 void parser_type_init(Parser* parser);
 void parser_type_end(Parser* parser);
@@ -72,10 +75,15 @@ static function_parser special_functions[END] = {
 
     [IF] = parser_keyword_with_value,
     [ELIF] = parser_keyword_with_value,
-    [ELSE] = parser_keyword,
     [LOOP] = parser_keyword_with_value,
     [RETURN] = parser_keyword_with_value,
+    [SWITCH] = parser_keyword_with_value,
+    [CASE] = parser_keyword_with_value,
 
+    [DEFAULT] = parser_keyword,
+    [ENUM] = parser_keyword,
+    [GOTO] = parser_keyword,
+    [ELSE] = parser_keyword,
     [CONTINUE] = parser_keyword,
     [BREAK] = parser_keyword,
 
@@ -121,11 +129,21 @@ static function_parser cmd_functions[END][6][END] = {
     [ELSE] = {
         [0] = {[NEW_LINE] = parser_end,     [SEMICOLON] = parser_end,}
     },
+    [SWITCH] = {
+        [1] = {[NEW_LINE] = parser_end,     [SEMICOLON] = parser_end,}
+    },
+    [CASE] = {
+        [1] = {[NEW_LINE] = parser_end,     [SEMICOLON] = parser_end,}
+    },
     [LOOP] = {
         [1] = {[NEW_LINE] = parser_end,     [SEMICOLON] = parser_end,}
     },
     [BREAK] = {
         [0] = {[NEW_LINE] = parser_end,     [SEMICOLON] = parser_end,}
+    },
+    [GOTO] = {
+        [0] = {[IDENTIFIER] = parser_add_node_to_cmd,},
+        [1] = {[NEW_LINE] = parser_end,     [SEMICOLON] = parser_end,}
     },
     [CONTINUE] = {
         [0] = {[NEW_LINE] = parser_end,     [SEMICOLON] = parser_end,}
@@ -133,29 +151,49 @@ static function_parser cmd_functions[END][6][END] = {
     [RETURN] = {
         [1] = {[NEW_LINE] = parser_end,     [SEMICOLON] = parser_end,}
     },
+    [ENUM] = {
+        [0] = {[IDENTIFIER] = parser_add_node_to_cmd,},
+        [1] = {[NEW_LINE] = parser_end,     [SEMICOLON] = parser_end,}
+    },
     [IDENTIFIER] = {
         [0] = {
-            [ARGUMENT] = parser_declaration_argument,
+            [ARGUMENT] = parser_identifier_argument,
             [COLON] = parser_type_init,
-            [EQUAL] = parser_declaration_value,
+            [EQUAL] = parser_identifier_value,
+            [NEW_LINE] = parser_identifier_end,
+            [SEMICOLON] = parser_identifier_end,
+
+            [ADD] = parser_identifier_compound_op,
+            [SUB] = parser_identifier_compound_op,
+            [MUL] = parser_identifier_compound_op,
+            [DIV] = parser_identifier_compound_op,
+            [EQUAL_EQUAL] = parser_identifier_compound_op,
+            [BANG_EQUAL] = parser_identifier_compound_op,
+            [GREATER] = parser_identifier_compound_op,
+            [LESS] = parser_identifier_compound_op,
+            [GREATER_EQUAL] = parser_identifier_compound_op,
+            [LESS_EQUAL] = parser_identifier_compound_op,
+            [OR] = parser_identifier_compound_op,
+            [AND] = parser_identifier_compound_op,
         },
         [1] = {
-            [EQUAL] = parser_declaration_value,
+            [EQUAL] = parser_identifier_value,
 
-            [NEW_LINE] = parser_end,
-            [SEMICOLON] = parser_end,
-            [COMMA] = parser_declaration_end,
-            [ARGUMENT_END] = parser_declaration_end,
+            [NEW_LINE] = parser_identifier_end,
+            [SEMICOLON] = parser_identifier_end,
+            [COMMA] = parser_identifier_add,
+            [ARGUMENT_END] = parser_identifier_add,
         },
         [2] = {
-            [NEW_LINE] = parser_end,
-            [SEMICOLON] = parser_end,
-            [COMMA] = parser_declaration_end,
-            [ARGUMENT_END] = parser_declaration_end,
+            [NEW_LINE] = parser_identifier_end,
+            [SEMICOLON] = parser_identifier_end,
+            [COMMA] = parser_identifier_add,
+            [ARGUMENT_END] = parser_identifier_add,
         },
     },
     [TYPE] = {
         [0] = {
+            [VOID] = parser_type_add_type,
             [I1] = parser_type_add_type,
             [I8] = parser_type_add_type,
             [I16] = parser_type_add_type,

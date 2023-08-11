@@ -4,50 +4,126 @@
 static int loners[END] = {
     [FUNCTION] = 1,
     [STRUCT] = 1,
+    [ENUM] = 1,
 };
 static int parents[END] = {
     [FUNCTION] = 1,
     [STRUCT] = 1,
+    [ENUM] = 1,
     [IF] = 1,
     [ELIF] = 1,
     [ELSE] = 1,
     [LOOP] = 1,
+    [SWITCH] = 1,
+    [CASE] = 1,
+    [DEFAULT] = 1,
 };
 // helps to indeditfy which command can have a block and which one
 // if 1 then it cannot have it
 static int block_holders[END][END] = {
     [FUNCTION] = {
-        [STRUCT] = 1,
         [FUNCTION] = 1,
+        [STRUCT] = 1,
+        [ENUM] = 1,
     },
     [STRUCT] = {
-        [STRUCT] = 1,
         [FUNCTION] = 1,
+        [STRUCT] = 1,
+        [ENUM] = 1,
 
         [IF] = 1,
         [ELSE] = 1,
         [LOOP] = 1,
 
+        [VARIABLE_WITH_VALUE] = 1,
+        [FUNCTION_CALL] = 1,
+        [VARIABLE] = 1,
         [BREAK] = 1,
         [CONTINUE] = 1,
         [RETURN] = 1,
+        [GOTO] = 1,
+    },
+    [SWITCH] = {
+        [FUNCTION] = 1,
+        [STRUCT] = 1,
+        [SWITCH] = 1,
+
+        [IF] = 1,
+        [ELSE] = 1,
+        [LOOP] = 1,
+
+        [VARIABLE_WITH_TYPE_AND_VALUE] = 1,
+        [VARIABLE_WITH_TYPE] = 1,
+        [VARIABLE_WITH_VALUE] = 1,
+        [FUNCTION_CALL] = 1,
+        [VARIABLE] = 1,
+
+        [BREAK] = 1,
+        [CONTINUE] = 1,
+        [RETURN] = 1,
+        [GOTO] = 1,
+    },
+    [ENUM] = {
+        [FUNCTION] = 1,
+        [STRUCT] = 1,
+        [SWITCH] = 1,
+
+        [IF] = 1,
+        [ELSE] = 1,
+        [LOOP] = 1,
+
+        [VARIABLE_WITH_TYPE_AND_VALUE] = 1,
+        [VARIABLE_WITH_TYPE] = 1,
+        [FUNCTION_CALL] = 1,
+
+        [BREAK] = 1,
+        [CONTINUE] = 1,
+        [RETURN] = 1,
+        [GOTO] = 1,
+    },
+    [CASE] = {
+        [STRUCT] = 1,
+        [FUNCTION] = 1,
+        [ENUM] = 1,
+        [CASE] = 1,
+        [DEFAULT] = 1,
+    },
+    [DEFAULT] = {
+        [STRUCT] = 1,
+        [FUNCTION] = 1,
+        [ENUM] = 1,
+        [CASE] = 1,
+        [DEFAULT] = 1,
     },
     [IF] = {
         [STRUCT] = 1,
         [FUNCTION] = 1,
+        [ENUM] = 1,
+        [CASE] = 1,
+        [DEFAULT] = 1,
     },
     [ELIF] = {
         [STRUCT] = 1,
         [FUNCTION] = 1,
+        [ENUM] = 1,
+        [CASE] = 1,
+        [DEFAULT] = 1,
     },
     [ELSE] = {
         [STRUCT] = 1,
         [FUNCTION] = 1,
+        [ENUM] = 1,
+        [CASE] = 1,
+        [DEFAULT] = 1,
     },
     [LOOP] = {
         [STRUCT] = 1,
         [FUNCTION] = 1,
+        [ENUM] = 1,
+        [CASE] = 1,
+        [DEFAULT] = 1,
     },
+
 };
 // if the command in the higher level then remove the command 
 static int put_int_block(Parser* parser){

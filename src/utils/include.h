@@ -24,8 +24,13 @@ typedef enum{
     IDENTIFIER,
     // Keywords + Command names
     FUNCTION, TYPE, EXPRESSION, SIGN, STRUCT,
-    IF, ELIF, ELSE, LOOP,
+    IF, ELIF, ELSE, LOOP, GOTO,
+    SWITCH, CASE, DEFAULT,
+    ENUM,
     BREAK, CONTINUE, RETURN,
+    VARIABLE_WITH_TYPE,VARIABLE,
+    VARIABLE_WITH_TYPE_AND_VALUE,VARIABLE_WITH_VALUE,
+    FUNCTION_CALL,
     // Maceos
     MACROS_START, 
         MACRO,
@@ -34,6 +39,7 @@ typedef enum{
         MACRO_END,
     MACROS_END,
     // Types 
+    VOID,
     I1, I8, I16,I32, I64, I128, 
     F16,F32, F64, F128,
         
@@ -58,7 +64,7 @@ typedef enum{
     QUESTION, EXCLAMATION,
 
     S_STRING, D_STRING, B_STRING,
-    EQUAL, COMMA, COLON,
+    EQUAL, COMMA, COLON, DOUBLE_COLON,
     // Comments
     SINGLE_COMMENT, SINGLE_COMMENT_START,
     MULTI_COMMENT,MULTI_COMMENT_START,

@@ -3,11 +3,24 @@
     by Kos
 */
 
+/* testing 
 
+use "test.c137" as test
+
+
+*/
+
+enum COUNTRIES
+    UKRAINE           // 0
+    UK                // 1
+    USA       = 5-4+3 // 4
+    CHINA             // 5
+    INDONESIA         // 6
 
 struct Person
-    name: i8*
-    age: i32 = 1    
+    name: i8* 
+    age: i32   
+
 
 
 fn add(num1:i32 = 0, num2:i32 = 0): i32; return num1+num2 
@@ -19,7 +32,12 @@ fn main()
     if 10 + 20 > 50; num1 = 20
     elif 20==30; num1 = 30
     else; num1 = 50
+    
+    num2:i32 = 10
 
-    num2: i32 = -add(50) + 50 - 60 + num1 > - num1 - num1 * 7
-
-    add    
+    num2: i32 = -add(50) + 50 - 60 + num1 > - num1 - num1 * 7;
+    switch num2
+        case 10-20
+            add(10,20+30)
+        case 50-20
+            add(20,30)

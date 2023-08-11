@@ -65,6 +65,9 @@ static int has_memory[END] = {
     [STRING] = 1,   [IDENTIFIER] = 1,
     [INTEGER] = 1,  [FLOAT] = 1,
     [FUNCTION] = 1, [STRUCT] = 1,
+    [VARIABLE] = 1, [VARIABLE_WITH_TYPE] = 1,
+    [VARIABLE_WITH_VALUE] = 1, [VARIABLE_WITH_TYPE_AND_VALUE] = 1,
+    [FUNCTION_CALL] = 1, 
 };
 void PRINT_NODE(Node* node,int level){
     char* tab = malloc(sizeof(char)*level);
@@ -112,8 +115,13 @@ char* PRINT_TYPE(int type){
 
         // Keywords + Command names
         "FUNCTION", "TYPE", "EXPRESSION", "SIGN", "STRUCT", 
-        "IF","ELSE IF" ,"ELSE", "LOOP",
+        "IF","ELSE IF" ,"ELSE", "LOOP", "GOTO",
+        "SWITCH", "CASE", "DEFAULT",
+        "ENUM",
         "BREAK", "CONTINUE", "RETURN",
+        "VARIABLE WITH TYPE", "VARIABLE",
+        "VARIABLE WITH TYPE AND VALUE", "VARIABLE WITH VALUE",
+        "FUNCTION CALL",
         // Macros
         "MACRO START",
             "MACRO",
@@ -122,6 +130,7 @@ char* PRINT_TYPE(int type){
             "MACRO END",
         "MACRO END",
         // Types
+        "VOID",
         "I1","I8","I16","I32", "I64", "I128",
         "F16","F32", "F64", "F128", 
 
@@ -147,7 +156,7 @@ char* PRINT_TYPE(int type){
         
         "S_STRING", "D_STRING", "B_STRING",
 
-        "EQUAL","COMMA","COLON",
+        "EQUAL","COMMA","COLON", "DOUBLE COLON",
         
         "SINGLE_COMMENT", "SINGLE_COMMENT_START",
         "MULTI_COMMENT","MULTI_COMMENT_START",

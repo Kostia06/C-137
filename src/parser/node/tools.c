@@ -1,5 +1,15 @@
 #include "../private.h"
 
+// creates a copy of a node
+Node* parser_create_copy(Parser* parser,Node* node, int index, int size){
+    Vector* copy_children;
+    if(node->children){copy_children = mem_copy(parser->compiler->memory,node->children,sizeof(Vector));}
+    Node* copy = mem_copy(parser->compiler->memory,node,sizeof(Node));
+    if(node->children){copy->children = copy_children;}
+    copy->index = index;
+    copy->size = size;
+    return copy;
+}
 // add the current node to the command
 void parser_add_node_to_cmd(Parser* parser){
     vector_add(parser->cmd->children,parser->current_node);

@@ -45,12 +45,15 @@ static int characters[256] = {
 	LT_ALPHA, LT_ALPHA, LT_ALPHA, LT_ALPHA, LT_ALPHA, LT_ALPHA, LT_ALPHA, LT_ALPHA,
 	LT_ALPHA, LT_ALPHA, LT_ALPHA, LT_SIGN, LT_SIGN ,LT_SIGN, LT_SIGN,0,
 };
-#define KEYWORD_COUNT 22
+#define KEYWORD_COUNT 28
 static Keyword keywords[] = {
     {"fn",FUNCTION},{"struct",STRUCT},
     {"if",IF},{"elif",ELIF},{"else",ELSE},
-    {"loop",LOOP},
+    {"loop",LOOP}, {"goto",GOTO},
+    {"switch",SWITCH},{"case",CASE},{"default",DEFAULT},
+    {"enum",ENUM},
     {"break",BREAK},{"continue",CONTINUE},{"return",RETURN},
+    {"void",VOID},
     {"i1",I1},{"i8",I8},{"i16",I16},{"i32",I32},{"i64",I64},{"i128",I128},
     {"f16",F16},{"f32",F32},{"f64",F64},{"f128",F128},
 };
@@ -61,10 +64,12 @@ static Keyword macros[] = {
     {"end",MACRO_END},
 };
 // IMPORTANT: the order of the signs should be from the longest to the shortest
-#define SIGN_COUNT 34
+#define SIGN_COUNT 35
 #define LONGEST_SIGN 2
 static Keyword signs[] = {
     //2
+    {"::",DOUBLE_COLON},
+
     {"//",SINGLE_COMMENT_START},{"/*",MULTI_COMMENT_START},
 
     {">=",GREATER_EQUAL},{"<=",LESS_EQUAL},

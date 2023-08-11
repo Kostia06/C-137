@@ -1,6 +1,8 @@
 #include "include.h"
 #include "private.h"
 
+#define INDEX 5000000
+
 Vector* new_parser(Compiler* compiler,Vector* nodes,int starter_type){
     // set up for the parser
     Parser* parser = mem_init(compiler->memory,sizeof(Parser));
@@ -15,7 +17,8 @@ Vector* new_parser(Compiler* compiler,Vector* nodes,int starter_type){
     parser->layers = vector_init(parser->compiler->memory);
     parser->nodes = nodes; 
     // loop through the nodes
-    while(parser->index < nodes->size){
+    int index = 0;
+    while(parser->index < nodes->size && INDEX > index++){
         parser->current_node = vector_get(nodes,parser->index++);
         function_parser special_function = special_functions[parser->current_node->type];
         // handle special cases
@@ -25,7 +28,13 @@ Vector* new_parser(Compiler* compiler,Vector* nodes,int starter_type){
             function_parser function = cmd_functions[parser->cmd->type][parser->cmd->children->size][parser->current_node->type]; 
             if(function){function(parser);}
             else{
-                char* message = SYNC((char*[]){"Unexpected ",PRINT_TYPE(parser->current_node->type)," in ",PRINT_TYPE(parser->cmd->type),NULL});
+                char* message = SYNC((char*[]){
+                    "Unexpected ",
+                    PRINT_TYPE(parser->current_node->type),
+                    " in ",
+                    PRINT_TYPE(parser->cmd->type),
+                    NULL
+                });
                 error_single_init(
                     parser->compiler->error,
                     SYNTAX_ERROR,

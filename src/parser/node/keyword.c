@@ -1,11 +1,5 @@
 #include "../private.h"
 
-static Node* create_copy(Parser* parser,Node* node, int index, int size){
-    Node* copy = mem_copy(parser->compiler->memory,node,sizeof(Node));
-    copy->index = index;
-    copy->size = size;
-    return copy;
-}
 // swap the current node with the swap
 void parser_special_swap(Parser* parser){
     // gets the info from the current node
@@ -22,7 +16,7 @@ void parser_special_swap(Parser* parser){
             // add the children of the swap
             for(int j=swap->children->size-1;j>=0;j--){
                 Node* child = vector_get(swap->children,j);
-                Node* copy = create_copy(parser,child,index,size); 
+                Node* copy = parser_create_copy(parser,child,index,size); 
                 vector_add_by_index(parser->nodes,copy,parser->index);
             }
             parser->current_node = NULL;

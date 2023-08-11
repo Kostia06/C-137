@@ -18,7 +18,7 @@ void parser_function_argument(Parser* parser){
     mem_free(parser->compiler->memory,nodes);
     for(int i=0;i<(int)node->children->size;i++){
         Node* parameter = vector_get(node->children,i);
-        if(parameter->type != IDENTIFIER){
+        if(parameter->type != VARIABLE_WITH_TYPE && parameter->type != VARIABLE_WITH_TYPE_AND_VALUE){
             char* message = SYNC((char*[]){"Expected a PARAMETER, got a ",PRINT_TYPE(parameter->type),NULL}); 
             error_single_init(parser->compiler->error,SYNTAX_ERROR,parameter->index,parameter->index+parameter->size,message);
             parser_error_skip(parser);
@@ -66,7 +66,7 @@ void parser_expression_argument(Parser* parser){
     parser_add_node_to_cmd(parser);
 }
 // handle the argument in the block
-void parser_declaration_argument(Parser* parser){
+void parser_identifier_argument(Parser* parser){
     Node* node = parser->current_node; 
     Node* last = vector_get(parser->cmd->children,parser->cmd->children->size-1);
     Vector* nodes = node->children;
