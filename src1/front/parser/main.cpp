@@ -4,13 +4,13 @@
 Parser::Parser(Compiler* compiler): compiler(compiler){
     this->compiler = compiler; 
     
-    std::vector<std::vector<Node*>> cmds;
-    std::vector<Node*>> current_cmd;
+    std::vector<std::vector<Node*> > cmds;
+    std::vector<Node*> current_cmd;
     size_t index = 0;
     while(index < this->compiler->nodes.size()){
         Node* node = this->compiler->nodes[index];
-        cmds.push_back(node);
-        if(node->type == NodeType::NEW_LINE){
+        current_cmd.push_back(node);
+        if(node->type == Type::NEW_LINE){
             cmds.push_back(current_cmd);
             current_cmd.clear();
         }

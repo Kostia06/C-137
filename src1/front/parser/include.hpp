@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../../utils/include.hpp"
+#include "../../node/include.hpp"
 
 // shadowing Compiler
 class Compiler;
