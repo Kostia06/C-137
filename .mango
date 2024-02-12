@@ -1,7 +1,7 @@
 @i
 clang++
 @f
-src1
+src
 .cpp
 -o
 main

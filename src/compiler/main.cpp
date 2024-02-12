@@ -57,6 +57,7 @@ void Compiler::run(std::string file_name){
     // running lexer
     lexer = new Lexer(this);
     if(error_handler->print_errors()){ return; }
+    // running parser
     parser = new Parser(this);
     if(error_handler->print_errors()){ return; }
     //deleting

@@ -22,3 +22,7 @@ void Node::print(int level){
     std::cout << str << std::endl;
     for(int i = 0; i < children.size(); i++){ children[i]->print(level+1); }
 }
+
+void Node::print_inlined(){
+    std::cout << CType[type] << " " << value << " ";
+}

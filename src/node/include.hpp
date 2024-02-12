@@ -3,7 +3,6 @@
 #include "../utils/include.hpp"
 
 
-
 class Node{
     private:
     public:
@@ -16,4 +15,5 @@ class Node{
         ~Node();
 
         void print(int level = 0);
+        void print_inlined();
 };
