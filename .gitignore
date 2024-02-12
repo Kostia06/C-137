@@ -3,4 +3,4 @@
 .git
 tools/Lang
 llvm-ir
-holder
+hide/

@@ -1,0 +1,14 @@
+@i
+clang++
+@f
+src1
+.cpp
+-o
+main
+-std=c++17
+-Wall
+-O0
+@r
+./main
+test/main.c137
+@r

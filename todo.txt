@@ -61,6 +61,10 @@
 
 - add return tuple 
 
+- package manager by sending request to github
+- allow to read it C or C-137
+
 - finish the srting usage
     - good idea to turn every string into a char array, so that I can only edit array 
 
+- add an array where you can type C code and it will be compiled the way you put it
