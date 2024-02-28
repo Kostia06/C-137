@@ -7,6 +7,8 @@
 #include <algorithm>
 #include <map>
 
+#include "hash/include.hpp"
+
 #define     RESET   "\033[0m"
 #define     WHITE   "\033[1m\033[37m"
 #define     MAGENTA "\033[1m\033[35m"
@@ -23,6 +25,7 @@
     X(EMPTY) \
     /* token type */ \
     X(STRUCT) \
+    X(TYPEDEF) \
     X(IF) X(ELSE) \
     X(WHILE) X(FOR) X(GOTO) \
     X(SWITCH) X(CASE) X(DEFAULT) \
@@ -55,7 +58,8 @@
     X(INTEGER) X(FLOAT) \
     X(IDENTIFIER) \
     X(STRING) \
-    X(NEW_LINE) 
+    X(NEW_LINE) \
+    X(END)
 
 
 typedef enum{ COMPILER_TYPES(GENERATE_ENUM) } Type;

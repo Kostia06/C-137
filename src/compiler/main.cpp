@@ -25,19 +25,25 @@ Compiler::Compiler(char** argv, int argc): lexer(nullptr), parser(nullptr){
     };
 
     keywords = std::vector<Keyword>() = {
-        {"struct",STRUCT},
+        // conditional
         {"if",IF},
         {"else",ELSE},
         {"while",WHILE},
         {"for",FOR},
-        {"goto",GOTO},
+        // struct
+        {"struct",STRUCT},
+        {"enum",ENUM},
+        {"typedef", TYPEDEF},
+        // looping
         {"switch",SWITCH},
         {"case",CASE},
         {"default",DEFAULT},
-        {"enum",ENUM},
+        // goto
+        {"goto",GOTO},
         {"break",BREAK},
         {"continue",CONTINUE},
         {"return",RETURN},
+        // types
         {"void",VOID},
         {"i1",I1},    {"i8",I8},
         {"i16",I16},  {"i32",I32},

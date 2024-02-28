@@ -1,4 +1,5 @@
 
+typedef str i8[]
 
 
 enum Countries
@@ -7,11 +8,13 @@ enum Countries
     Poland = 10 - 2 * -2,
     Spain
 
+struct human
+    str name
+    i32 age 
 
-
-void main(i16 argc, i8[][] argv)
+void main(i16 argc, str[] argv)
     i32 num1  = 10
     i32 num2 = 30
     i32 num3 = num1 + num2 * 2
-    i8[] name = "Kostia"
+    str name = "Kostia"
 

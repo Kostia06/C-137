@@ -16,13 +16,11 @@ Node::~Node(){
 void Node::print(int level){
     std::string str = "";
     for(int i = 0; i < level; i++){ str += "  "; }
-    str += CType[type];
-    for(int i = 0; i < 25 - CType[type].size(); i++){ str += " "; }
+    str += type_str();
+    for(int i = 0; i < 25 - type_str().size(); i++){ str += " "; }
     str += value;
     std::cout << str << std::endl;
     for(int i = 0; i < children.size(); i++){ children[i]->print(level+1); }
 }
 
-void Node::print_inlined(){
-    std::cout << CType[type] << " " << value << " ";
-}
+std::string Node::type_str(){ return CType[type]; }
