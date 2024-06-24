@@ -1,20 +1,22 @@
-
 typedef str i8[]
 
-
-enum Countries
-    USA,
-    Ukraine,
-    Poland = 10 - 2 * -2,
-    Spain
-
 struct human
-    str name
-    i32 age 
+    private 
+        id
+    public
+        str name
+        i32 age 
+        human(str _name, i32 _age)
+            name = _name
+            age = _age
+            id = _name + _age 
+
 
 void main(i16 argc, str[] argv)
     i32 num1  = 10
     i32 num2 = 30
     i32 num3 = num1 + num2 * 2
     str name = "Kostia"
+    human me = human(name, num1)
+
 

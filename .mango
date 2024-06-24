@@ -1,14 +1,3 @@
-@i
-clang++
-@f
-src
-.cpp
--o
-main
--std=c++17
--Wall
--O0
-@r
-./main
-test/main.c137
-@r
+clang++ @f src .cpp -o main -std=c++17 -O0 @r
+./main test/main.c137 @r
+rm -f main @r
