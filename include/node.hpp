@@ -10,11 +10,13 @@ using namespace std;
 class Node{
     private:
     public:
-        string value;
+        string valueStr;
+        int valueInt;
+
         NodeType type;
         Node* left, *right;
 
-        Node(NodeType type = EMPTY, string value = "");
+        Node(NodeType type = EMPTY, string str = "");
 
         void remove(Node* node);
 
@@ -22,4 +24,5 @@ class Node{
         Node* successor();
 
         bool compare(const Node* other);
+        void print(string prefix = "", bool isTail = true);
 };
