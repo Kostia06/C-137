@@ -5,4 +5,6 @@ Compiler::Compiler(string source){
     root = new Node(NodeType::ROOT, "");
     lexer = new Lexer(this->root, this->source);
     lexer->lex();
+    if(lexer->error())
+        return;
 }

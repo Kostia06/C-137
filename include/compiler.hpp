@@ -6,10 +6,12 @@
 
 #include "node.hpp"
 #include "lexer.hpp"
+#include "utils.hpp"
+#include "error.hpp"
 
 using namespace std;
 
-class Compiler{
+class Compiler: private Error{
     private:
         string source;
         Node* root;

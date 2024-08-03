@@ -35,6 +35,7 @@ bool Node::compare(const Node* other){
 
 void Node::print(string prefix, bool isTail){
     cout << prefix << (isTail ? "└── " : "├── ");
+    cout << stringNodeType[type] << " ";
     if(valueStr == "") 
         cout << valueInt << endl;
     else

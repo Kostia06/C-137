@@ -1,7 +1,47 @@
+use "something" as smt
 
-int* main(int x, int y)
-    int* z = x + y
-    return z
 
-char* sayHello()
-    return "Hello World"
+obj String
+    private
+            
+    public    
+        
+
+type Result
+    OK(T)
+    Error(int)
+
+type Shape
+    Circle(int)
+    Square(int)
+    Rect(int, int)
+
+
+int add(int x, int y); x + y
+int sub(int x, int y); x - y
+int mul(int x, int y); x * y
+
+(int, int) swap(int x, int y); (y, x)
+
+$
+Hell World$$$
+
+"Hello World
+
+pub int main(int x, int y)
+    (y, x) = swap(x, y)
+    int z = x + y / 2 * 10
+
+    int result = 10
+    |> sub($, 20)
+    |> mul(10, $)
+    |> add($, 2)
+    |> $ + z
+
+
+    case result
+        10 -> return 20
+        20 -> return 30
+        30 -> return 10
+        _ -> return 69
+
