@@ -8,16 +8,17 @@
 #include "lexer.hpp"
 #include "utils.hpp"
 #include "error.hpp"
+#include "argument.hpp"
 
 using namespace std;
 
 class Compiler: private Error{
     private:
-        string source;
-        Node* root;
+        Argument* argumentParser;
         Lexer* lexer;
+        Node* root;
     public:
-        Compiler(string source);
+        Compiler(int argc, char* argv[]);
         ~Compiler();
 
 };

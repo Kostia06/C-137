@@ -26,6 +26,7 @@ Lexer::Lexer(Node* root, string source){
 void Lexer::lex(){
     content = readFile(source);
     contentSize = content.size();
+    setDetails(source, content);
     int counter = 0;
     while(pos < contentSize){
 
@@ -113,7 +114,7 @@ void Lexer::handleNumber(){
         next();
     }
     if(invalidFloat){
-        logInFileError(source, ERROR_INVALID_FLOAT, ERROR_SYNTAX, node);
+        logError(ERROR_INVALID_FLOAT, ERROR_SYNTAX, node);
         return;
     }
     addNode(node);
@@ -140,7 +141,7 @@ void Lexer::handleString(){
         next();
     }
     if(!(LIMIT)){
-        logInFileError(source, ERROR_UNTERMINATED, ERROR_SYNTAX, node);
+        logError(ERROR_UNTERMINATED, ERROR_SYNTAX, node);
         return;
     }
     next();
@@ -165,7 +166,7 @@ void Lexer::handleSymbol(){
     if(node->size == 0){
         // setting this to size so that error shows the entire symbol
         node->size = size; 
-        logInFileError(source, ERROR_UNKNOWN_SYMBOL,ERROR_SYNTAX, node); 
+        logError(ERROR_UNKNOWN_SYMBOL,ERROR_SYNTAX, node); 
         next();
         return;
     }
@@ -174,7 +175,7 @@ void Lexer::handleSymbol(){
 }
 
 void Lexer::handleUknown(){
-    logInFileError(source, ERROR_UNKNOWN_CHARACTER, ERROR_SYNTAX, line, column);
+    logError(ERROR_UNKNOWN_CHARACTER, ERROR_SYNTAX, line, column);
     next();
 }
 

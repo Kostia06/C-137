@@ -44,4 +44,3 @@ pub int main(int x, int y)
         20 -> return 30
         30 -> return 10
         _ -> return 69
-
